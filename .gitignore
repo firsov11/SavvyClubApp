@@ -1,5 +1,7 @@
-# Android Studio
+# Android/IntelliJ
 *.iml
+.idea/
+.idea/*
 .gradle
 /local.properties
 /.idea/caches/

@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.savvyclub.data.loadPuzzlesFromAssets
 import com.example.savvyclub.ui.screen.PuzzleScreen
+import com.example.savvyclub.ui.theme.SavvyClubTheme
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
 import com.example.savvyclub.viewmodel.SavvyClubViewModelFactory
 
@@ -16,5 +17,8 @@ fun SavvyClubApp(context: Context) {
         factory = SavvyClubViewModelFactory(context, puzzles)
     )
 
-    PuzzleScreen(viewModel = viewModel)
+    SavvyClubTheme {
+        PuzzleScreen(viewModel = viewModel)
+    }
 }
+

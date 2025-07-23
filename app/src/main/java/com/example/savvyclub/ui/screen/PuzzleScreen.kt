@@ -10,6 +10,9 @@ import androidx.compose.ui.res.stringResource
 import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromAssets
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -17,6 +20,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val puzzle by viewModel.currentPuzzle.collectAsState()
     val showAnswer by viewModel.showAnswer.collectAsState()
     var showResetDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -60,7 +64,8 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -72,11 +77,12 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "ID: ${it.id}", // или как у тебя идентификатор называется
+                    text = "ID: ${it.id}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             } ?: Text(stringResource(R.string.no_puzzles_left))
         }
+
 
 
         if (showResetDialog) {
