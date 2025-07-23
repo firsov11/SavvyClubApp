@@ -7,12 +7,16 @@
     <string name="button_show_puzzle">Puzzle</string>
     <string name="image_not_found">Image_not_found</string>
     <string name="button_reset">Reset</string>
-    <string name="no_puzzles_left">Нет новых головоломок</string>
+    <string name="no_puzzles_left">No new puzzles</string>
     <string name="dialog_title">Reset Progress</string>
     <string name="dialog_message">Are you sure you want to reset progress? All seen answers will be forgotten.</string>
     <string name="dialog_confirm">Reset</string>
     <string name="dialog_cancel">Cancel</string>
 
+
+
+    <string name="cryptarithm">In this problem, the numbers are replaced by letters. The same letters are replaced by the same numbers. Recover the encrypted numbers</string>
+    <string name="pic">Find the differences</string>
 </resources>
 
 

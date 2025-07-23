@@ -12,6 +12,10 @@
     <string name="dialog_message">Вы уверены, что хотите сбросить прогресс? Ответы будут забыты.</string>
     <string name="dialog_confirm">Сбросить</string>
     <string name="dialog_cancel">Отмена</string>
+
+
+    <string name="cryptarithm">В этой задаче цифры заменены буквами. Одинаковыми буквами заменены одинаковые цифры. Восстановите зашифрованные цифры</string>
+    <string name="pic">Найди отличия</string>
 </resources>
 
 

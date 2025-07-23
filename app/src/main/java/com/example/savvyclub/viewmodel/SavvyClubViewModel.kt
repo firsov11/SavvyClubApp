@@ -25,6 +25,7 @@ class SavvyClubViewModel(
     private var viewedAnswers: MutableSet<String> =
         prefs.getStringSet("viewed_answers", emptySet())?.toMutableSet() ?: mutableSetOf()
 
+    // Список доступных головоломок
     private var availablePuzzles: List<Puzzle> = filterAvailablePuzzles()
 
     private var currentIndex = 0
@@ -39,7 +40,7 @@ class SavvyClubViewModel(
 
     private fun updateCurrentPuzzle() {
         if (availablePuzzles.isNotEmpty()) {
-            // Защита от выхода за пределы
+            // Защита от выхода за границы
             if (currentIndex >= availablePuzzles.size) currentIndex = 0
             _currentPuzzle.value = availablePuzzles[currentIndex]
         } else {
@@ -53,14 +54,15 @@ class SavvyClubViewModel(
         val currentShow = _showAnswer.value
 
         if (!currentShow) {
-            // Помечаем ответ как просмотренный
+            // Помечаем как просмотренный
             viewedAnswers.add(puzzle.id.toString())
             prefs.edit().putStringSet("viewed_answers", viewedAnswers).apply()
 
             availablePuzzles = filterAvailablePuzzles()
 
-            // Если список стал пустым — currentIndex в 0, иначе корректируем currentIndex
-            currentIndex = if (availablePuzzles.isEmpty()) 0 else currentIndex.coerceAtMost(availablePuzzles.size - 1)
+            // Обновляем индекс
+            currentIndex = if (availablePuzzles.isEmpty()) 0
+            else currentIndex.coerceAtMost(availablePuzzles.size - 1)
         }
 
         _showAnswer.value = !currentShow
@@ -88,4 +90,3 @@ class SavvyClubViewModel(
         updateCurrentPuzzle()
     }
 }
-

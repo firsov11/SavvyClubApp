@@ -1,18 +1,19 @@
 package com.example.savvyclub.ui.screen
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromAssets
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,6 +22,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val showAnswer by viewModel.showAnswer.collectAsState()
     var showResetDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -61,30 +63,47 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
             }
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             puzzle?.let {
+                // 🔤 Описание над изображением
+                val descriptionResId = remember(it.descriptionKey) {
+                    getStringResIdByName(context, it.descriptionKey)
+                }
+
+                if (descriptionResId != 0) {
+                    Text(
+                        text = stringResource(id = descriptionResId),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
+
+                // 🖼️ Изображение
                 PuzzleImageFromAssets(
                     fileName = if (showAnswer) it.a else it.q,
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // 🔢 ID головоломки
                 Text(
                     text = "ID: ${it.id}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             } ?: Text(stringResource(R.string.no_puzzles_left))
         }
 
-
-
+        // 🔁 Диалог сброса
         if (showResetDialog) {
             AlertDialog(
                 onDismissRequest = { showResetDialog = false },
@@ -101,14 +120,14 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         Text(stringResource(R.string.dialog_cancel))
                     }
                 },
-                title = {
-                    Text(stringResource(R.string.dialog_title))
-                },
-                text = {
-                    Text(stringResource(R.string.dialog_message))
-                }
+                title = { Text(stringResource(R.string.dialog_title)) },
+                text = { Text(stringResource(R.string.dialog_message)) }
             )
         }
     }
 }
 
+// 🔧 Утилита: получить ID строки по названию
+fun getStringResIdByName(context: Context, name: String): Int {
+    return context.resources.getIdentifier(name, "string", context.packageName)
+}
