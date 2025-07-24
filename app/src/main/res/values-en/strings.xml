@@ -12,10 +12,18 @@
     <string name="dialog_message">Are you sure you want to reset progress? All seen answers will be forgotten.</string>
     <string name="dialog_confirm">Reset</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="about">About</string>
+    <string name="dialog_ok">OK</string>
+    <string name="menu_title">Menu</string>
+
+    <string name="snackbar_prev">Previous puzzle</string>
+    <string name="snackbar_next">Next puzzle</string>
+    <string name="snackbar_show_answer">Show answer</string>
+    <string name="snackbar_show_puzzle">Show puzzle</string>
 
 
 
-    <string name="cryptarithm">In this problem, the numbers are replaced by letters. The same letters are replaced by the same numbers. Recover the encrypted numbers</string>
+    <string name="cryptarithm">A cryptoarithm is a mathematical expression in which numbers are replaced by letters. In this case, the same numbers are encrypted with the same letter, and different numbers correspond to different letters. It is believed that no number should start with zero, and the cryptoarithm should have a single possible solution.</string>
     <string name="pic">Find the differences</string>
 </resources>
 

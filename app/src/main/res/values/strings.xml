@@ -12,9 +12,18 @@
     <string name="dialog_message">Вы уверены, что хотите сбросить прогресс? Ответы будут забыты.</string>
     <string name="dialog_confirm">Сбросить</string>
     <string name="dialog_cancel">Отмена</string>
+    <string name="about">О программе</string>
+    <string name="dialog_ok">ОК</string>
+    <string name="menu_title">Меню</string>
+
+    <string name="snackbar_prev">Предыдущая головоломка</string>
+    <string name="snackbar_next">Следующая головоломка</string>
+    <string name="snackbar_show_answer">Показать ответ</string>
+    <string name="snackbar_show_puzzle">Показать вопрос</string>
 
 
-    <string name="cryptarithm">В этой задаче цифры заменены буквами. Одинаковыми буквами заменены одинаковые цифры. Восстановите зашифрованные цифры</string>
+
+    <string name="cryptarithm">Криптарифм - это математическое выражение, в котором цифры заменены буквами. При этом одинаковые цифры шифруются одной и той же буквой, а разным цифрам соответствуют различные буквы. Считается, что никакое число не должно начинаться с нуля, а криптарифм должен иметь единственное возможное решение.</string>
     <string name="pic">Найди отличия</string>
 </resources>
 
