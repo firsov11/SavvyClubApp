@@ -1,8 +1,7 @@
 package com.example.savvyclub.data
 
 import android.content.Context
-import com.example.savvyclub.model.Puzzle
-import kotlinx.serialization.decodeFromString
+import com.example.savvyclub.data.model.Puzzle
 import kotlinx.serialization.json.Json
 
 fun loadPuzzlesFromAssets(context: Context): List<Puzzle> {

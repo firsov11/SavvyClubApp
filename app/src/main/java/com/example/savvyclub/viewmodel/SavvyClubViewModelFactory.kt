@@ -3,7 +3,7 @@ package com.example.savvyclub.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import android.content.Context
-import com.example.savvyclub.model.Puzzle
+import com.example.savvyclub.data.model.Puzzle
 
 class SavvyClubViewModelFactory(
     private val context: Context,

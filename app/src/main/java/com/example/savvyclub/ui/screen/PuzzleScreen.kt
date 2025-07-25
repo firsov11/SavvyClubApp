@@ -19,6 +19,7 @@ import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromAssets
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +34,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    // Вынесены все stringResource вызовы для использования в @Composable контексте
     val menuTitle = stringResource(R.string.menu_title)
     val aboutText = stringResource(R.string.about)
     val resetText = stringResource(R.string.button_reset)
@@ -46,6 +46,9 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val noPuzzlesLeft = stringResource(R.string.no_puzzles_left)
     val buttonShowPuzzle = stringResource(R.string.button_show_puzzle)
     val buttonShowAnswer = stringResource(R.string.button_show_answer)
+
+    // Получаем текущий язык системы, например "ru" или "en"
+    val currentLanguage = Locale.getDefault().language
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -125,7 +128,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         .fillMaxSize()
                         .padding(padding)
                 ) {
-                    // Основное прокручиваемое содержимое
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -133,30 +135,27 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        puzzle?.let {
-                            val descriptionResId = remember(it.descriptionKey) {
-                                getStringResIdByName(context, it.descriptionKey)
-                            }
+                        puzzle?.let { puzzleItem ->
+                            // Берём локализацию для текущего языка или fallback на "en"
+                            val qa = puzzleItem.localization[currentLanguage] ?: puzzleItem.localization["en"]
 
-                            if (descriptionResId != 0) {
+                            if (qa != null) {
                                 Text(
-                                    text = stringResource(id = descriptionResId),
+                                    text = if (showAnswer) qa.getOrNull(1) ?: "" else qa.getOrNull(0) ?: "",
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                                 )
                             }
 
                             PuzzleImageFromAssets(
-                                fileName = if (showAnswer) it.a else it.q,
+                                fileName = if (showAnswer) puzzleItem.a else puzzleItem.q,
                                 modifier = Modifier.fillMaxWidth()
                             )
-
 
                             Spacer(modifier = Modifier.height(8.dp))
                         } ?: Text(noPuzzlesLeft)
                     }
 
-                    // Закреплённый блок снизу с ID и переключателем ответа
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -218,9 +217,4 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
             }
         }
     }
-}
-
-// Утилита получения ID строки по имени
-fun getStringResIdByName(context: Context, name: String): Int {
-    return context.resources.getIdentifier(name, "string", context.packageName)
 }

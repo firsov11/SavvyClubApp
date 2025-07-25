@@ -3,7 +3,7 @@ package com.example.savvyclub.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
-import com.example.savvyclub.model.Puzzle
+import com.example.savvyclub.data.model.Puzzle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -25,7 +25,7 @@ class SavvyClubViewModel(
     private var viewedAnswers: MutableSet<String> =
         prefs.getStringSet("viewed_answers", emptySet())?.toMutableSet() ?: mutableSetOf()
 
-    // Список доступных головоломок
+    // Список доступных головоломок (фильтрация по непросмотренным)
     private var availablePuzzles: List<Puzzle> = filterAvailablePuzzles()
 
     private var currentIndex = 0
@@ -40,7 +40,6 @@ class SavvyClubViewModel(
 
     private fun updateCurrentPuzzle() {
         if (availablePuzzles.isNotEmpty()) {
-            // Защита от выхода за границы
             if (currentIndex >= availablePuzzles.size) currentIndex = 0
             _currentPuzzle.value = availablePuzzles[currentIndex]
         } else {
@@ -54,13 +53,11 @@ class SavvyClubViewModel(
         val currentShow = _showAnswer.value
 
         if (!currentShow) {
-            // Помечаем как просмотренный
+            // Помечаем текущий пазл как просмотренный (ответ показан)
             viewedAnswers.add(puzzle.id.toString())
             prefs.edit().putStringSet("viewed_answers", viewedAnswers).apply()
 
             availablePuzzles = filterAvailablePuzzles()
-
-            // Обновляем индекс
             currentIndex = if (availablePuzzles.isEmpty()) 0
             else currentIndex.coerceAtMost(availablePuzzles.size - 1)
         }
@@ -85,7 +82,8 @@ class SavvyClubViewModel(
     fun resetProgress() {
         viewedAnswers.clear()
         prefs.edit().remove("viewed_answers").apply()
-        availablePuzzles = allPuzzles
+        // Применяем фильтр заново, чтобы гарантировать актуальный список
+        availablePuzzles = filterAvailablePuzzles()
         currentIndex = 0
         updateCurrentPuzzle()
     }

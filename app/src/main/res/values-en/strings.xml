@@ -22,9 +22,6 @@
     <string name="snackbar_show_puzzle">Show puzzle</string>
 
 
-
-    <string name="cryptarithm">A cryptoarithm is a mathematical expression in which numbers are replaced by letters. In this case, the same numbers are encrypted with the same letter, and different numbers correspond to different letters. It is believed that no number should start with zero, and the cryptoarithm should have a single possible solution.</string>
-    <string name="pic">Find the differences</string>
 </resources>
 
 
