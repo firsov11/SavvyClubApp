@@ -7,5 +7,7 @@ data class Puzzle(
     val id: Int,
     val q: String,
     val a: String,
-    val localization: Map<String, List<String>>
+    val question: Map<String, String>,  // Например, {"ru": "вопрос", "en": "question"}
+    val answer: Map<String, String>     // Например, {"ru": "ответ", "en": "answer"}
 )
+

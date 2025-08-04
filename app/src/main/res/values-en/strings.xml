@@ -6,7 +6,7 @@
     <string name="button_show_answer">Answer</string>
     <string name="button_show_puzzle">Puzzle</string>
     <string name="image_not_found">Image_not_found</string>
-    <string name="button_reset">Reset</string>
+    <string name="reset_progress">Reset</string>
     <string name="no_puzzles_left">No new puzzles</string>
     <string name="dialog_title">Reset Progress</string>
     <string name="dialog_message">Are you sure you want to reset progress? All seen answers will be forgotten.</string>

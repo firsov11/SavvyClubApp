@@ -1,19 +1,17 @@
 package com.example.savvyclub.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import android.content.Context
-import com.example.savvyclub.data.model.Puzzle
 
-class SavvyClubViewModelFactory(
-    private val context: Context,
-    private val puzzles: List<Puzzle>
-) : ViewModelProvider.Factory {
+class SavvyClubViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SavvyClubViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SavvyClubViewModel(context, puzzles) as T
+            return SavvyClubViewModel(context) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
+

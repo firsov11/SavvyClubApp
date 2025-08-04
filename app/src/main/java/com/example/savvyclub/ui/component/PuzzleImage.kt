@@ -3,6 +3,7 @@ package com.example.savvyclub.ui.component
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,36 +12,37 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.savvyclub.R
+import com.example.savvyclub.data.model.PuzzleSource
+import java.io.File
 
 @Composable
-fun PuzzleImageFromAssets(
-    fileName: String,
-    modifier: Modifier = Modifier
+fun PuzzleImageFromPath(
+    filePath: String,
+    source: PuzzleSource,
+    modifier: Modifier = Modifier,
+    onTap: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
-    val imageBitmap: ImageBitmap? = remember(fileName) {
+    val imageBitmap: ImageBitmap? = remember(filePath) {
         try {
-            Log.d("PuzzleImage", "Попытка открыть файл из assets: $fileName")
-            context.assets.open(fileName).use { inputStream ->
-                val byteArray = inputStream.readBytes()
-                Log.d("PuzzleImage", "Файл прочитан, размер: ${byteArray.size} байт")
-                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                if (bitmap != null) {
-                    Log.d("PuzzleImage", "Картинка декодирована: ${bitmap.width}x${bitmap.height}")
-                    bitmap.asImageBitmap()
-                } else {
-                    Log.e("PuzzleImage", "BitmapFactory вернул null — возможно, поврежденный файл.")
-                    null
+            val localFile = File(context.filesDir, "puzzles/$filePath")
+            val bitmap = if (localFile.exists()) {
+                BitmapFactory.decodeFile(localFile.absolutePath)
+            } else {
+                context.assets.open(filePath).use { inputStream ->
+                    val byteArray = inputStream.readBytes()
+                    BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
                 }
             }
+            bitmap?.asImageBitmap()
         } catch (e: Exception) {
-            Log.e("PuzzleImage", "Ошибка при загрузке изображения: $fileName", e)
             null
         }
     }
@@ -55,10 +57,16 @@ fun PuzzleImageFromAssets(
                 .fillMaxWidth()
                 .aspectRatio(aspectRatio)
                 .padding(8.dp)
+                .then(
+                    if (onTap != null) Modifier.pointerInput(Unit) {
+                        detectTapGestures(onTap = { onTap() })
+                    } else Modifier
+                )
         )
-    } ?: Text(
-        text = stringResource(R.string.image_not_found, fileName),
-        color = MaterialTheme.colorScheme.error,
-        modifier = Modifier.padding(8.dp)
-    )
+    }
 }
+
+
+
+
+

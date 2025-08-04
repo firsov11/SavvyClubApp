@@ -6,7 +6,7 @@
     <string name="button_show_answer">Ответ</string>
     <string name="button_show_puzzle">Головоломка</string>
     <string name="image_not_found">Картинка не найдена</string>
-    <string name="button_reset">Сбросить</string>
+    <string name="reset_progress">Сбросить</string>
     <string name="no_puzzles_left">Нет новых головоломок</string>
     <string name="dialog_title">Сброс прогресса</string>
     <string name="dialog_message">Вы уверены, что хотите сбросить прогресс? Ответы будут забыты.</string>

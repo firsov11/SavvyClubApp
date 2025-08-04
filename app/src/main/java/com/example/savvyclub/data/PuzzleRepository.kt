@@ -1,14 +1,11 @@
 package com.example.savvyclub.data
 
 import android.content.Context
-import com.example.savvyclub.data.model.Puzzle
-import kotlinx.serialization.json.Json
+import com.example.savvyclub.data.model.PuzzleItem
 
-fun loadPuzzlesFromAssets(context: Context): List<Puzzle> {
-    val jsonString = context.assets.open("puzzles.json")
-        .bufferedReader()
-        .use { it.readText() }
+object PuzzleRepository {
+    suspend fun loadAll(context: Context): List<PuzzleItem> {
+        return PuzzleLoader.loadAllPuzzlesWithSource(context)
+    }
 
-    return Json.decodeFromString(jsonString)
 }
-
