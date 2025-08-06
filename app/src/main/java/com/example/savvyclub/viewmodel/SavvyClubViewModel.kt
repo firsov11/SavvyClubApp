@@ -21,6 +21,8 @@ class SavvyClubViewModel(
     private val KEY_INDEX = "current_index"
     private val KEY_SHOW_ANSWER = "show_answer"
     private val KEY_PACKAGE = "current_package"  // Используем эту константу
+    private val KEY_UPDATE_DONE = "update_done"
+
 
     private val _puzzles = MutableStateFlow<List<PuzzleItem>>(emptyList())
     val puzzles: StateFlow<List<PuzzleItem>> = _puzzles.asStateFlow()
@@ -39,8 +41,13 @@ class SavvyClubViewModel(
 
     init {
         loadPuzzles()
-        checkForUpdates()
+
+        val updateDone = prefs.getBoolean(KEY_UPDATE_DONE, false)
+        if (!updateDone) {
+            checkForUpdatesOnce()
+        }
     }
+
 
     private fun loadPuzzles() {
         viewModelScope.launch {
@@ -133,4 +140,17 @@ class SavvyClubViewModel(
             }
         }
     }
+
+    private fun checkForUpdatesOnce() {
+        viewModelScope.launch {
+            try {
+                checkForUpdates()
+
+                prefs.edit().putBoolean(KEY_UPDATE_DONE, true).apply()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 }

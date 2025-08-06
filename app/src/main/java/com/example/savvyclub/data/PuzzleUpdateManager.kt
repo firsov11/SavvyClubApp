@@ -5,11 +5,8 @@ import android.util.Log
 import androidx.core.content.edit
 import com.example.savvyclub.data.model.Puzzle
 import com.example.savvyclub.data.model.PuzzleManifest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import java.io.*
-import java.util.zip.ZipInputStream
+import com.example.savvyclub.data.model.UpdateResult
+import com.example.savvyclub.data.util.FileHashUtils.calculateMD5
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.*
@@ -17,22 +14,22 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import java.io.*
+import java.util.zip.ZipInputStream
 
 object PuzzleUpdateManager {
     private const val PREFS_NAME = "puzzle_prefs"
     private const val PREF_VERSION = "puzzle_version"
     private const val TAG = "PuzzleUpdateManager"
 
-    val json = Json { ignoreUnknownKeys = true; isLenient = true }
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) { json(json) }
     }
-
-    data class UpdateResult(
-        val puzzles: List<Puzzle>,
-        val packageName: String
-    )
 
     suspend fun checkForUpdatesWithPackage(
         context: Context,
@@ -40,59 +37,75 @@ object PuzzleUpdateManager {
         puzzlesDir: File
     ): UpdateResult? = withContext(Dispatchers.IO) {
         try {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val currentVersion = prefs.getInt(PREF_VERSION, 0)
+
+            // Загружаем manifest.json
             val responseText = client.get(manifestUrl).bodyAsText()
             val manifest = json.decodeFromString<PuzzleManifest>(responseText)
 
-            // Создаём папку для головоломок, если надо
             if (!puzzlesDir.exists()) puzzlesDir.mkdirs()
 
-            // Файл архива, который будем скачивать
             val zipFile = File(puzzlesDir, manifest.filename)
 
-            // Скачиваем архив (заменяем всегда)
+            var fileIsValid = false
+
+            // Проверка MD5-хэша, если файл уже существует
+            if (zipFile.exists()) {
+                val localMd5 = calculateMD5(zipFile)
+                if (localMd5.equals(manifest.md5, ignoreCase = true)) {
+                    Log.i(TAG, "ZIP file MD5 matches.")
+                    fileIsValid = true
+                } else {
+                    Log.w(TAG, "ZIP file MD5 mismatch. Will re-download.")
+                }
+            }
+
+            // Условия когда НЕ нужно скачивать файл заново
+            if (manifest.version <= currentVersion && fileIsValid) {
+                Log.i(TAG, "Package version and MD5 are up to date. Skipping download.")
+                return@withContext null
+            }
+
+            // Скачиваем ZIP, если:
+            // 1. Версия новее
+            // 2. Локальный файл невалидный
+            Log.i(TAG, "Downloading package: ${manifest.filename}")
             downloadFile(manifest.url, zipFile)
 
-            // Папка для распаковки, например "package_5"
+            // Распаковываем
             val targetFolder = File(puzzlesDir, manifest.folder)
-
-            // Распаковываем в targetFolder
             unzip(zipFile, targetFolder)
 
-            // Сохраняем версию (опционально)
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            // Сохраняем новую версию
             prefs.edit { putInt(PREF_VERSION, manifest.version) }
 
-            // Читаем puzzles.json из папки targetFolder
+            // Чтение puzzles.json
             val puzzlesJson = File(targetFolder, "puzzles.json")
             if (puzzlesJson.exists()) {
                 val jsonStr = puzzlesJson.readText()
                 val puzzles: List<Puzzle> = json.decodeFromString(jsonStr)
-                UpdateResult(puzzles = puzzles, packageName = manifest.folder)
+                return@withContext UpdateResult(puzzles = puzzles, packageName = manifest.folder)
             } else {
                 Log.e(TAG, "puzzles.json not found in ${targetFolder.path}")
-                null
+                return@withContext null
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            return@withContext null
         }
     }
 
-    suspend fun downloadFile(url: String, destFile: File) {
-        destFile.parentFile?.let {
-            if (!it.exists()) it.mkdirs()
-        }
-
+    private suspend fun downloadFile(url: String, destFile: File) {
+        destFile.parentFile?.let { if (!it.exists()) it.mkdirs() }
         val response = client.get(url)
         val bytes = response.body<ByteArray>()
         destFile.writeBytes(bytes)
         Log.i(TAG, "File downloaded to ${destFile.absolutePath}")
     }
 
-    fun unzip(zipFile: File, targetDir: File) {
-        if (!targetDir.exists()) {
-            targetDir.mkdirs()
-        }
+    private fun unzip(zipFile: File, targetDir: File) {
+        if (!targetDir.exists()) targetDir.mkdirs()
         ZipInputStream(BufferedInputStream(FileInputStream(zipFile))).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
