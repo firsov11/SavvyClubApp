@@ -3,16 +3,14 @@ package com.example.savvyclub.data
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
-import com.example.savvyclub.data.model.Puzzle
 import com.example.savvyclub.data.model.PuzzleManifest
-import com.example.savvyclub.data.model.UpdateResult
 import com.example.savvyclub.data.util.FileHashUtils.calculateMD5
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,107 +19,140 @@ import java.io.*
 import java.util.zip.ZipInputStream
 
 object PuzzleUpdateManager {
-    private const val PREFS_NAME = "puzzle_prefs"
-    private const val PREF_VERSION = "puzzle_version"
     private const val TAG = "PuzzleUpdateManager"
+    private const val PREFS = "puzzle_update_prefs"
+    private const val PREF_LATEST_VERSION = "latest_manifest_version"
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
-
     private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) { json(json) }
     }
 
+    /**
+     * Скачивает и устанавливает пакет, если версия манифеста новее.
+     * Возвращает имя папки пакета (manifest.folder), либо null если обновления нет/ошибка.
+     */
     suspend fun checkForUpdatesWithPackage(
         context: Context,
         manifestUrl: String,
-        puzzlesDir: File
-    ): UpdateResult? = withContext(Dispatchers.IO) {
+        onDownloadProgress: ((Float) -> Unit)? = null,
+        onUnpackProgress: ((Float) -> Unit)? = null
+    ): String? = withContext(Dispatchers.IO) {
         try {
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val currentVersion = prefs.getInt(PREF_VERSION, 0)
-
-            // Загружаем manifest.json
+            // 1) читаем манифест
             val responseText = client.get(manifestUrl).bodyAsText()
+            Log.d(TAG, "Manifest raw: $responseText")
             val manifest = json.decodeFromString<PuzzleManifest>(responseText)
 
-            if (!puzzlesDir.exists()) puzzlesDir.mkdirs()
-
-            val zipFile = File(puzzlesDir, manifest.filename)
-
-            var fileIsValid = false
-
-            // Проверка MD5-хэша, если файл уже существует
-            if (zipFile.exists()) {
-                val localMd5 = calculateMD5(zipFile)
-                if (localMd5.equals(manifest.md5, ignoreCase = true)) {
-                    Log.i(TAG, "ZIP file MD5 matches.")
-                    fileIsValid = true
-                } else {
-                    Log.w(TAG, "ZIP file MD5 mismatch. Will re-download.")
-                }
-            }
-
-            // Условия когда НЕ нужно скачивать файл заново
-            if (manifest.version <= currentVersion && fileIsValid) {
-                Log.i(TAG, "Package version and MD5 are up to date. Skipping download.")
+            // 2) сравнение версий (простая защита от повторных загрузок)
+            val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            val latest = prefs.getInt(PREF_LATEST_VERSION, 0)
+            if (manifest.version <= latest) {
+                Log.i(TAG, "No update needed. Remote=${manifest.version} Local=$latest")
                 return@withContext null
             }
 
-            // Скачиваем ZIP, если:
-            // 1. Версия новее
-            // 2. Локальный файл невалидный
-            Log.i(TAG, "Downloading package: ${manifest.filename}")
-            downloadFile(manifest.url, zipFile)
+            // 3) качаем zip во временный файл
+            val tmpZip = File.createTempFile("puzzles_", ".zip", context.cacheDir)
+            downloadFile(manifest.url, tmpZip, onDownloadProgress)
 
-            // Распаковываем
-            val targetFolder = File(puzzlesDir, manifest.folder)
-            unzip(zipFile, targetFolder)
-
-            // Сохраняем новую версию
-            prefs.edit { putInt(PREF_VERSION, manifest.version) }
-
-            // Чтение puzzles.json
-            val puzzlesJson = File(targetFolder, "puzzles.json")
-            if (puzzlesJson.exists()) {
-                val jsonStr = puzzlesJson.readText()
-                val puzzles: List<Puzzle> = json.decodeFromString(jsonStr)
-                return@withContext UpdateResult(puzzles = puzzles, packageName = manifest.folder)
+            // 4) проверка MD5 (если не совпало — ошибка)
+            val md5 = calculateMD5(tmpZip)
+            if (!md5.equals(manifest.md5, ignoreCase = true)) {
+                Log.e(TAG, "MD5 mismatch: local=$md5, expected=${manifest.md5}")
+                tmpZip.delete()
+                return@withContext null
             } else {
-                Log.e(TAG, "puzzles.json not found in ${targetFolder.path}")
-                return@withContext null
+                Log.i(TAG, "MD5 OK: $md5")
             }
+
+            // 5) распаковываем в отдельную папку пакета
+            val targetFolder = File(context.filesDir, "puzzles/${manifest.folder}")
+            if (targetFolder.exists()) {
+                // обновляем пакет по месту (перезапишем файлы)
+                targetFolder.deleteRecursively()
+            }
+            targetFolder.mkdirs()
+
+            unzip(tmpZip, targetFolder, onUnpackProgress)
+            logUnpackedFiles(targetFolder)
+
+            // 6) сохраняем последнюю версию манифеста
+            prefs.edit { putInt(PREF_LATEST_VERSION, manifest.version) }
+
+            tmpZip.delete()
+            return@withContext manifest.folder
         } catch (e: Exception) {
             e.printStackTrace()
             return@withContext null
         }
     }
 
-    private suspend fun downloadFile(url: String, destFile: File) {
-        destFile.parentFile?.let { if (!it.exists()) it.mkdirs() }
-        val response = client.get(url)
-        val bytes = response.body<ByteArray>()
-        destFile.writeBytes(bytes)
-        Log.i(TAG, "File downloaded to ${destFile.absolutePath}")
+    private suspend fun downloadFile(
+        url: String,
+        dest: File,
+        onProgress: ((Float) -> Unit)?
+    ) = withContext(Dispatchers.IO) {
+        dest.parentFile?.mkdirs()
+        val resp: HttpResponse = client.get(url)
+        val bytes = resp.body<ByteArray>()
+        val total = bytes.size.toFloat().coerceAtLeast(1f)
+        var copied = 0
+
+        FileOutputStream(dest).use { fos ->
+            val buf = ByteArray(64 * 1024)
+            var off = 0
+            while (off < bytes.size) {
+                val len = minOf(buf.size, bytes.size - off)
+                fos.write(bytes, off, len)
+                off += len
+                copied += len
+                onProgress?.invoke(copied / total)
+            }
+            fos.flush()
+        }
     }
 
-    private fun unzip(zipFile: File, targetDir: File) {
+    private fun unzip(zipFile: File, targetDir: File, onProgress: ((Float) -> Unit)?) {
         if (!targetDir.exists()) targetDir.mkdirs()
+
+        val totalEntries = countZipEntries(zipFile).coerceAtLeast(1)
+        var processed = 0
+
         ZipInputStream(BufferedInputStream(FileInputStream(zipFile))).use { zis ->
             var entry = zis.nextEntry
             while (entry != null) {
-                val file = File(targetDir, entry.name)
+                val out = File(targetDir, entry.name)
                 if (entry.isDirectory) {
-                    file.mkdirs()
+                    out.mkdirs()
                 } else {
-                    file.parentFile?.mkdirs()
-                    FileOutputStream(file).use { fos ->
-                        zis.copyTo(fos)
-                    }
+                    out.parentFile?.mkdirs()
+                    FileOutputStream(out).use { fos -> zis.copyTo(fos) }
                 }
+                processed++
+                onProgress?.invoke(processed.toFloat() / totalEntries)
                 zis.closeEntry()
                 entry = zis.nextEntry
             }
         }
-        Log.i(TAG, "Unzip complete to ${targetDir.absolutePath}")
+    }
+
+    private fun countZipEntries(zipFile: File): Int {
+        ZipInputStream(BufferedInputStream(FileInputStream(zipFile))).use { zis ->
+            var count = 0
+            var e = zis.nextEntry
+            while (e != null) {
+                count++
+                e = zis.nextEntry
+            }
+            return count
+        }
+    }
+
+    private fun logUnpackedFiles(targetDir: File) {
+        if (!targetDir.exists()) return
+        targetDir.walkTopDown().forEach { f ->
+            Log.d(TAG, "Unpacked: ${f.relativeTo(targetDir)}")
+        }
     }
 }

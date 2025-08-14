@@ -32,7 +32,7 @@ fun PuzzleImageFromPath(
 
     val imageBitmap: ImageBitmap? = remember(filePath) {
         try {
-            val localFile = File(context.filesDir, "puzzles/package_7/$filePath")
+            val localFile = File(context.filesDir, "puzzles/$filePath")
             val bitmap = if (localFile.exists()) {
                 BitmapFactory.decodeFile(localFile.absolutePath)
             } else {
