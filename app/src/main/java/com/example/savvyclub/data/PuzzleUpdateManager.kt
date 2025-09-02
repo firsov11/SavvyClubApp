@@ -44,10 +44,12 @@ object PuzzleUpdateManager {
             Log.d(TAG, "Manifest raw: $responseText")
             val manifest = json.decodeFromString<PuzzleManifest>(responseText)
 
-            // 2) сравнение версий (простая защита от повторных загрузок)
+            // 2) сравнение версий + проверка наличия папки
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             val latest = prefs.getInt(PREF_LATEST_VERSION, 0)
-            if (manifest.version <= latest) {
+            val targetFolder = File(context.filesDir, "puzzles/${manifest.folder}")
+
+            if (manifest.version <= latest && targetFolder.exists()) {
                 Log.i(TAG, "No update needed. Remote=${manifest.version} Local=$latest")
                 return@withContext null
             }
@@ -56,7 +58,7 @@ object PuzzleUpdateManager {
             val tmpZip = File.createTempFile("puzzles_", ".zip", context.cacheDir)
             downloadFile(manifest.url, tmpZip, onDownloadProgress)
 
-            // 4) проверка MD5 (если не совпало — ошибка)
+            // 4) проверка MD5
             val md5 = calculateMD5(tmpZip)
             if (!md5.equals(manifest.md5, ignoreCase = true)) {
                 Log.e(TAG, "MD5 mismatch: local=$md5, expected=${manifest.md5}")
@@ -66,10 +68,8 @@ object PuzzleUpdateManager {
                 Log.i(TAG, "MD5 OK: $md5")
             }
 
-            // 5) распаковываем в отдельную папку пакета
-            val targetFolder = File(context.filesDir, "puzzles/${manifest.folder}")
+            // 5) распаковываем
             if (targetFolder.exists()) {
-                // обновляем пакет по месту (перезапишем файлы)
                 targetFolder.deleteRecursively()
             }
             targetFolder.mkdirs()
@@ -77,7 +77,7 @@ object PuzzleUpdateManager {
             unzip(tmpZip, targetFolder, onUnpackProgress)
             logUnpackedFiles(targetFolder)
 
-            // 6) сохраняем последнюю версию манифеста
+            // 6) сохраняем последнюю версию
             prefs.edit { putInt(PREF_LATEST_VERSION, manifest.version) }
 
             tmpZip.delete()
@@ -87,6 +87,7 @@ object PuzzleUpdateManager {
             return@withContext null
         }
     }
+
 
     private suspend fun downloadFile(
         url: String,

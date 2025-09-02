@@ -16,18 +16,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.savvyclub.R
-import com.example.savvyclub.data.model.PuzzleSource
 import com.example.savvyclub.ui.component.PuzzleImageFromPath
 import com.example.savvyclub.util.clearLocalPuzzlesFolder
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+
+import androidx.compose.material3.HorizontalDivider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val context = LocalContext.current
 
+    // Подписка на состояния из ViewModel
     val currentPuzzleItem by viewModel.currentPuzzle.collectAsState(initial = null)
     val currentIndex by viewModel.currentIndex.collectAsState(initial = 0)
     val showAnswer by viewModel.showAnswer.collectAsState(initial = false)
@@ -35,14 +42,38 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val downloadProgress by viewModel.downloadProgress.collectAsState()
     val unpackProgress by viewModel.unpackProgress.collectAsState()
     val isUpdating by viewModel.isUpdating.collectAsState()
+    val selectedTypes by viewModel.selectedTypes.collectAsState()
+    val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList())
 
-    val scrollState = rememberScrollState()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState() // для вертикального скролла
+    val drawerState = rememberDrawerState(DrawerValue.Closed) // состояние бокового меню
+    val scope = rememberCoroutineScope() // корутина для открытия/закрытия drawer
 
+    // Состояния диалогов и секций
     var showAboutDialog by remember { mutableStateOf(false) }
     var showResetConfirmDialog by remember { mutableStateOf(false) }
+    var showFilterSection by remember { mutableStateOf(false) }
+    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) }
 
+    val allTypes = remember(allPuzzles) { allPuzzles.map { it.puzzle.type }.distinct() } // уникальные типы пазлов
+
+    // Локализация типов
+    val typeLocalizationMap = mapOf(
+        "cryptorhyme" to R.string.type_cryptorhyme,
+        "differences" to R.string.type_differences,
+        "matches" to R.string.type_matches,
+        "math" to R.string.type_math,
+        "chess" to R.string.type_chess
+    )
+
+    // Сброс индекса, если он вышел за границы после фильтрации
+    LaunchedEffect(puzzles.size, currentIndex) {
+        if (puzzles.isNotEmpty() && currentIndex >= puzzles.size) {
+            viewModel.resetIndex()
+        }
+    }
+
+    // -------------------- Боковое меню (Drawer) --------------------
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -54,51 +85,125 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                     modifier = Modifier.padding(16.dp)
                 )
                 HorizontalDivider()
+
+                // Секция фильтров
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.filters)) },
+                    selected = showFilterSection,
+                    onClick = { showFilterSection = !showFilterSection }
+                )
+
+                // Анимированная видимость секции фильтров
+                AnimatedVisibility(
+                    visible = showFilterSection,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(modifier = Modifier.padding(start = 16.dp, end = 8.dp)) {
+                        allTypes.forEach { type ->
+                            val checked = type in selectedTypes
+                            val localizedType = typeLocalizationMap[type]?.let { stringResource(it) }
+                                ?: type.replaceFirstChar { it.uppercase() }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = checked,
+                                    onCheckedChange = { viewModel.toggleFilter(type) } // меняем фильтр
+                                )
+                                Text(
+                                    text = localizedType,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider()
+
+                // Другие пункты меню
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.about)) },
                     selected = false,
                     onClick = {
                         showAboutDialog = true
-                        scope.launch { drawerState.close() }
+                        scope.launch { drawerState.close() } // закрываем меню
                     }
                 )
+
                 NavigationDrawerItem(
-                    label = { Text("Сбросить прогресс") },
+                    label = { Text(stringResource(R.string.reset_progress)) },
                     selected = false,
                     onClick = {
                         showResetConfirmDialog = true
                         scope.launch { drawerState.close() }
                     }
                 )
+
                 NavigationDrawerItem(
-                    label = { Text("Очистить память") },
+                    label = { Text(stringResource(R.string.clear_memory)) },
                     selected = false,
                     onClick = {
-                        clearLocalPuzzlesFolder(context)
-                        Toast.makeText(context, "Память очищена", Toast.LENGTH_SHORT).show()
+                        showClearMemoryConfirmDialog = true
                         scope.launch { drawerState.close() }
                     }
                 )
 
+                // Диалог очистки памяти
+                if (showClearMemoryConfirmDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showClearMemoryConfirmDialog = false },
+                        title = { Text(stringResource(R.string.clear_memory)) },
+                        text = { Text(stringResource(R.string.confirm_clear_memory)) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                clearLocalPuzzlesFolder(context)
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.memory_cleared),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                showClearMemoryConfirmDialog = false
+                            }) { Text(stringResource(R.string.confirm)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showClearMemoryConfirmDialog = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
+                    )
+                }
+
+                // Диалог сброса прогресса
                 if (showResetConfirmDialog) {
                     AlertDialog(
                         onDismissRequest = { showResetConfirmDialog = false },
-                        title = { Text("Сброс прогресса") },
-                        text = { Text("Вы уверены, что хотите сбросить прогресс?") },
+                        title = { Text(stringResource(R.string.dialog_title)) },
+                        text = { Text(stringResource(R.string.dialog_message)) },
                         confirmButton = {
                             TextButton(onClick = {
                                 viewModel.resetProgress()
                                 showResetConfirmDialog = false
-                            }) { Text("Да") }
+                            }) { Text(stringResource(R.string.dialog_confirm)) }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showResetConfirmDialog = false }) { Text("Нет") }
+                            TextButton(onClick = { showResetConfirmDialog = false }) {
+                                Text(stringResource(R.string.dialog_cancel))
+                            }
                         }
                     )
                 }
             }
         }
     ) {
+
+        // -------------------- Основной Scaffold --------------------
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -111,8 +216,10 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                 )
             }
         ) { padding ->
+
             val screenWidthPx = with(context.resources.displayMetrics) { widthPixels.toFloat() }
 
+            // Основная зона кликов: свайпы и тап
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -121,15 +228,16 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         detectTapGestures { offset ->
                             val x = offset.x
                             when {
-                                x < screenWidthPx * 0.2f -> viewModel.prevPuzzle()
-                                x > screenWidthPx * 0.8f -> viewModel.nextPuzzle()
-                                else -> viewModel.toggleAnswer()
+                                x < screenWidthPx * 0.2f -> viewModel.prevPuzzle() // тап слева
+                                x > screenWidthPx * 0.8f -> viewModel.nextPuzzle() // тап справа
+                                else -> viewModel.toggleAnswer() // средняя часть экрана — показать ответ
                             }
                         }
                     }
             ) {
+
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // --- Прогресс загрузки/распаковки ---
+                    // -------------------- Прогресс обновления --------------------
                     if (isUpdating) {
                         Column(
                             modifier = Modifier
@@ -137,13 +245,13 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                                 .padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "Загрузка: ${(downloadProgress * 100).toInt()}%")
+                            Text(text = "${stringResource(R.string.loading)}: ${(downloadProgress * 100).toInt()}%")
                             LinearProgressIndicator(
                                 progress = { downloadProgress },
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = "Распаковка: ${(unpackProgress * 100).toInt()}%")
+                            Text(text = "${stringResource(R.string.unpacking)}: ${(unpackProgress * 100).toInt()}%")
                             LinearProgressIndicator(
                                 progress = { unpackProgress },
                                 modifier = Modifier.fillMaxWidth()
@@ -151,7 +259,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         }
                     }
 
-                    // --- Основной контент паззла ---
+                    // -------------------- Основной контент пазла --------------------
                     currentPuzzleItem?.let { puzzleItem ->
                         val puzzle = puzzleItem.puzzle
                         val lang = Locale.getDefault().language
@@ -168,6 +276,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Top
                         ) {
+                            // Текст вопроса или ответа
                             if (textToShow.isNotEmpty()) {
                                 Text(
                                     text = textToShow,
@@ -176,8 +285,8 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                                 )
                             }
 
+                            // Изображение
                             val imagePath = if (showAnswer) puzzle.a else puzzle.q
-
                             PuzzleImageFromPath(
                                 filePath = imagePath,
                                 source = puzzleItem.source,
@@ -186,25 +295,37 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
 
                             Spacer(modifier = Modifier.height(8.dp))
 
+                            // Кнопка показать/скрыть ответ
                             Text(
-                                text = if (showAnswer) "Ответ" else "Вопрос",
+                                text = if (showAnswer) stringResource(R.string.button_show_answer)
+                                else stringResource(R.string.button_show_puzzle),
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(8.dp)
                             )
 
+                            // Информация о текущем пазле
                             Text(
                                 text = "ID: ${puzzle.id}  (${currentIndex + 1} / ${puzzles.size})",
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
-                    } ?: Text(
-                        text = stringResource(R.string.no_puzzles_left),
-                        modifier = Modifier.padding(16.dp)
-                    )
+                    } ?: run {
+                        // Если пазлов больше нет
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.no_puzzles_left),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
                 }
             }
 
+            // -------------------- Диалог "О программе" --------------------
             if (showAboutDialog) {
                 AlertDialog(
                     onDismissRequest = { showAboutDialog = false },
@@ -214,7 +335,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         }
                     },
                     title = { Text(stringResource(R.string.about)) },
-                    text = { Text("SavvyClub v1.0\nAuthor: rza res\n© 2025 All rights reserved.") }
+                    text = { Text("SavvyClub v1.0\nAuthor: rza\n2025") }
                 )
             }
         }

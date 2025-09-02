@@ -1,6 +1,7 @@
 [
   {
     "id": 1,
+    "type": "cryptorhyme",
     "q": "puzzle1_q.png",
     "a": "puzzle1_a.png",
     "question": {
@@ -14,6 +15,7 @@
   },
   {
     "id": 2,
+    "type": "differences",
     "q": "puzzle2_q.png",
     "a": "puzzle2_a.png",
     "question": {
@@ -27,6 +29,7 @@
   },
   {
     "id": 3,
+    "type": "cryptorhyme",
     "q": "puzzle3_q.png",
     "a": "puzzle3_a.png",
     "question": {
@@ -40,6 +43,7 @@
   },
   {
     "id": 4,
+    "type": "differences",
     "q": "puzzle4_q.png",
     "a": "puzzle4_a.png",
     "question": {
@@ -53,6 +57,7 @@
   },
   {
     "id": 5,
+    "type": "cryptorhyme",
     "q": "puzzle5_q.png",
     "a": "puzzle5_a.png",
     "question": {
@@ -62,6 +67,48 @@
     "answer": {
       "en": "answer",
       "ru": "ответ"
+    }
+  },
+  {
+    "id": 6,
+    "type": "matches",
+    "q": "puzzle6_q.png",
+    "a": "puzzle6_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переставте одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 7,
+    "type": "math",
+    "q": "puzzle7_q.png",
+    "a": "puzzle7_a.png",
+    "question": {
+      "en": "Pythagoras said: \"My friend is he who is my second self, like the numbers XXY and XAB.\" These two numbers are remarkable in that the sum of the divisors of each of them is equal to the second number.\nWhat are these numbers?",
+      "ru": "Пифагор говорил: «Мой друг тот, кто является моим вторым я, как числа XXY и XAB».\nЭти два числа замечательны тем, что сумма делителей каждого из них равна второму числу.\nКакие это числа?"
+    },
+    "answer": {
+      "en": "220 and 284",
+      "ru": "220 и 284"
+    }
+  },
+  {
+    "id": 8,
+    "type": "chess",
+    "q": "puzzle8_q.png",
+    "a": "puzzle8_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves",
+      "ru": "Белые начинают и ставят мат в 2 хода"
+    },
+    "answer": {
+      "en": "1. Rb7-d7 Na6-b8 2. Rd7-a7",
+      "ru": "1. Лb7-d7 Ka6-b8 2. Лd7-a7"
     }
   }
 ]
