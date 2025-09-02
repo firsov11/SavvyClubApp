@@ -19,8 +19,8 @@
     "q": "puzzle2_q.png",
     "a": "puzzle2_a.png",
     "question": {
-      "en": "question",
-      "ru": "вопрос"
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
     },
     "answer": {
       "en": "answer",
@@ -47,8 +47,8 @@
     "q": "puzzle4_q.png",
     "a": "puzzle4_a.png",
     "question": {
-      "en": "question",
-      "ru": "вопрос"
+      "en": "Find 15 differences",
+      "ru": "Найдите 15 отличий "
     },
     "answer": {
       "en": "answer",
@@ -76,7 +76,7 @@
     "a": "puzzle6_a.png",
     "question": {
       "en": "Move one match",
-      "ru": "Переставте одну спичку"
+      "ru": "Переместите одну спичку"
     },
     "answer": {
       "en": "answer",
@@ -119,6 +119,34 @@
     "question": {
       "en": "question",
       "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 10,
+    "type": "differences",
+    "q": "puzzle10_q.png",
+    "a": "puzzle10_a.png",
+    "question": {
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 11,
+    "type": "matches",
+    "q": "puzzle11_q.png",
+    "a": "puzzle11_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
     },
     "answer": {
       "en": "answer",

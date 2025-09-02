@@ -12,68 +12,91 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
+// ViewModel для приложения SavvyClub, управляет состоянием головоломок
 class SavvyClubViewModel(application: Application) : AndroidViewModel(application) {
 
+    // SharedPreferences для хранения текущего прогресса и состояния
     private val prefs = application.getSharedPreferences("puzzle_prefs", Application.MODE_PRIVATE)
 
-    private val KEY_INDEX = "current_index"
-    private val KEY_SHOW_ANSWER = "show_answer"
-    private val SOLVED_KEY = "solved_ids_set"
+    // Ключи для SharedPreferences
+    private val keyIndex = "current_index"         // текущий индекс головоломки
+    private val keyShowAnswer = "show_answer"     // показывать ли ответ
+    private val solvedKey = "solved_ids_set"      // ID решённых головоломок
 
+    // Все головоломки (локальные + ассеты)
     private val _allPuzzles = MutableStateFlow<List<PuzzleItem>>(emptyList())
     val allPuzzles: StateFlow<List<PuzzleItem>> = _allPuzzles.asStateFlow()
 
+    // Отфильтрованные головоломки (по выбранным типам)
     private val _puzzles = MutableStateFlow<List<PuzzleItem>>(emptyList())
     val puzzles: StateFlow<List<PuzzleItem>> = _puzzles.asStateFlow()
 
-    private val _currentIndex = MutableStateFlow(prefs.getInt(KEY_INDEX, 0))
+    // Индекс текущей головоломки
+    private val _currentIndex = MutableStateFlow(prefs.getInt(keyIndex, 0))
     val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
 
-    private val _showAnswer = MutableStateFlow(prefs.getBoolean(KEY_SHOW_ANSWER, false))
+    // Показывать ли ответ
+    private val _showAnswer = MutableStateFlow(prefs.getBoolean(keyShowAnswer, false))
     val showAnswer: StateFlow<Boolean> = _showAnswer.asStateFlow()
 
+    // Текущая головоломка
     private val _currentPuzzle = MutableStateFlow<PuzzleItem?>(null)
     val currentPuzzle: StateFlow<PuzzleItem?> = _currentPuzzle.asStateFlow()
 
+    // Выбранные фильтры по типу головоломки
     private val _selectedTypes = MutableStateFlow<Set<String>>(emptySet())
     val selectedTypes: StateFlow<Set<String>> = _selectedTypes.asStateFlow()
 
+    // Флаг, что идет обновление
     private val _isUpdating = MutableStateFlow(false)
     val isUpdating: StateFlow<Boolean> = _isUpdating.asStateFlow()
 
+    // Прогресс скачивания обновлений
     private val _downloadProgress = MutableStateFlow(0f)
     val downloadProgress: StateFlow<Float> = _downloadProgress.asStateFlow()
 
+    // Прогресс распаковки обновлений
     private val _unpackProgress = MutableStateFlow(0f)
     val unpackProgress: StateFlow<Float> = _unpackProgress.asStateFlow()
 
+    // Кэш решённых ID для ускорения работы
     private var solvedCache: MutableSet<Int>? = null
 
     init {
+        // Загружаем все локальные и ассетные головоломки
         loadAllLocalAndAssets()
-        checkForUpdatesInBackground()
-    }
 
-    private fun loadAllLocalAndAssets() {
+        // Проверяем обновления в фоне с задержкой 1 сек
         viewModelScope.launch {
-            val context = getApplication<Application>()
-            val solved = getSolvedIds() // кэшируем один раз
-
-            val all = withContext(Dispatchers.IO) {
-                PuzzleLoader.loadAllPuzzlesWithSource(context)
-                    .filterNot { it.puzzle.id in solved }
-            }
-
-            _allPuzzles.value = all
-            applyFilter()
+            kotlinx.coroutines.delay(1000) // задержка 1 сек
+            checkForUpdatesInBackground()
         }
     }
 
+
+    // Загружает все головоломки с устройства и из ассетов
+    private fun loadAllLocalAndAssets() {
+        viewModelScope.launch {
+            val context = getApplication<Application>()
+            val solved = getSolvedIds() // Получаем кэш решённых головоломок
+
+            val all = withContext(Dispatchers.IO) {
+                PuzzleLoader.loadAllPuzzlesWithSource(context)
+                    .filterNot { it.puzzle.id in solved } // исключаем уже решённые
+            }
+
+            _allPuzzles.value = all
+            applyFilter() // применяем фильтры (если есть)
+        }
+    }
+
+    // Добавление новых головоломок из пакета обновлений
     private fun addPackagePuzzles(packageFolder: String) {
         viewModelScope.launch {
             val context = getApplication<Application>()
-            val solved = getSolvedIds() // кэшируем один раз
+            val solved = getSolvedIds()
 
             val newItems = withContext(Dispatchers.IO) {
                 PuzzleLoader.loadFromPackage(context, packageFolder)
@@ -87,6 +110,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    // Проверка обновлений в фоне
     private fun checkForUpdatesInBackground() {
         viewModelScope.launch {
             try {
@@ -107,7 +131,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
                 }
 
                 if (folderName != null) {
-                    addPackagePuzzles(folderName)
+                    addPackagePuzzles(folderName) // добавляем новые головоломки
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -117,9 +141,10 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    // Применение фильтров по типу головоломки
     private fun applyFilter() {
         val filters = _selectedTypes.value
-        val allPuzzlesCopy = _allPuzzles.value.toList() // чтобы работать с копией
+        val allPuzzlesCopy = _allPuzzles.value.toList() // копия списка
 
         viewModelScope.launch(Dispatchers.Default) {
             val filtered = if (filters.isEmpty()) allPuzzlesCopy
@@ -129,7 +154,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
             val newIndex = if (filtered.isEmpty()) 0 else index.coerceAtMost(filtered.lastIndex)
             val current = filtered.getOrNull(newIndex)
 
-            // Возвращаем результат на главный поток
+            // Обновляем StateFlow на главном потоке
             withContext(Dispatchers.Main) {
                 _puzzles.value = filtered
                 _currentIndex.value = newIndex
@@ -138,7 +163,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-
+    // Включение/выключение фильтра
     fun toggleFilter(type: String) {
         val current = _selectedTypes.value.toMutableSet()
         if (!current.add(type)) current.remove(type)
@@ -146,18 +171,20 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         applyFilter()
     }
 
+    // Переключение отображения ответа
     fun toggleAnswer() {
         val current = _currentPuzzle.value ?: return
         val show = !_showAnswer.value
         _showAnswer.value = show
-        saveProgress(_currentIndex.value, show)
+        saveProgress(_currentIndex.value, show) // сохраняем прогресс
 
         if (show) {
             addSolvedId(current.puzzle.id)
-            applyFilter()
+            applyFilter() // обновляем список, исключая решённые
         }
     }
 
+    // Переход к следующей головоломке
     fun nextPuzzle() {
         val list = _puzzles.value
         if (list.isEmpty()) return
@@ -174,6 +201,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         _currentPuzzle.value = newList[_currentIndex.value]
     }
 
+    // Переход к предыдущей головоломке
     fun prevPuzzle() {
         val list = _puzzles.value
         if (list.isEmpty()) return
@@ -190,6 +218,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         _currentPuzzle.value = newList[_currentIndex.value]
     }
 
+    // Сброс прогресса всех головоломок
     fun resetProgress() {
         saveSolvedIds(emptySet())
         _currentIndex.value = 0
@@ -198,6 +227,7 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         loadAllLocalAndAssets()
     }
 
+    // Удаление текущей головоломки, если она решена
     private fun removeCurrentIfSolved() {
         val curr = _currentPuzzle.value ?: return
         val solved = getSolvedIds()
@@ -207,32 +237,39 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    // Сохранение прогресса (индекс + показывать ответ)
     private fun saveProgress(index: Int, showAnswer: Boolean) {
-        prefs.edit()
-            .putInt(KEY_INDEX, index)
-            .putBoolean(KEY_SHOW_ANSWER, showAnswer)
-            .apply()
+        prefs.edit {
+            putInt(keyIndex, index)
+            putBoolean(keyShowAnswer, showAnswer)
+        }
     }
 
+    // Сброс индекса на 0
     fun resetIndex() {
         _currentIndex.value = 0
         _currentPuzzle.value = _puzzles.value.getOrNull(0)
     }
 
+    // Получение множества ID решённых головоломок
     private fun getSolvedIds(): MutableSet<Int> {
-        solvedCache?.let { return it }
+        solvedCache?.let { return it } // если уже есть кэш
 
-        val raw = prefs.getStringSet(SOLVED_KEY, emptySet()) ?: emptySet()
+        val raw = prefs.getStringSet(solvedKey, emptySet()) ?: emptySet()
         val set = raw.mapNotNull { it.toIntOrNull() }.toMutableSet()
         solvedCache = set
         return set
     }
 
+    // Сохранение множества ID решённых головоломок
     private fun saveSolvedIds(ids: Set<Int>) {
         solvedCache = ids.toMutableSet()
-        prefs.edit().putStringSet(SOLVED_KEY, ids.map { it.toString() }.toSet()).apply()
+        prefs.edit {
+            putStringSet(solvedKey, ids.map { it.toString() }.toSet())
+        }
     }
 
+    // Добавление одного решённого ID
     private fun addSolvedId(id: Int) {
         val ids = getSolvedIds()
         if (ids.add(id)) saveSolvedIds(ids)
