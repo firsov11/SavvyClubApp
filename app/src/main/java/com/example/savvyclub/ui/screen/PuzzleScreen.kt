@@ -32,32 +32,34 @@ import androidx.compose.material3.HorizontalDivider
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PuzzleScreen(viewModel: SavvyClubViewModel) {
-    val context = LocalContext.current
+    val context = LocalContext.current // Получаем контекст для Toast и файлов
 
-    // Подписка на состояния из ViewModel
-    val currentPuzzleItem by viewModel.currentPuzzle.collectAsState(initial = null)
-    val currentIndex by viewModel.currentIndex.collectAsState(initial = 0)
-    val showAnswer by viewModel.showAnswer.collectAsState(initial = false)
-    val puzzles by viewModel.puzzles.collectAsState(initial = emptyList())
-    val downloadProgress by viewModel.downloadProgress.collectAsState()
-    val unpackProgress by viewModel.unpackProgress.collectAsState()
-    val isUpdating by viewModel.isUpdating.collectAsState()
-    val selectedTypes by viewModel.selectedTypes.collectAsState()
-    val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList())
+    // -------------------- Подписка на состояния ViewModel --------------------
+    // Compose будет автоматически обновлять UI при изменении этих состояний
+    val currentPuzzleItem by viewModel.currentPuzzle.collectAsState(initial = null) // Текущий пазл
+    val currentIndex by viewModel.currentIndex.collectAsState(initial = 0) // Индекс текущего пазла
+    val showAnswer by viewModel.showAnswer.collectAsState(initial = false) // Показывать ли ответ
+    val puzzles by viewModel.puzzles.collectAsState(initial = emptyList()) // Отфильтрованные пазлы
+    val downloadProgress by viewModel.downloadProgress.collectAsState() // Прогресс загрузки
+    val unpackProgress by viewModel.unpackProgress.collectAsState() // Прогресс распаковки
+    val isUpdating by viewModel.isUpdating.collectAsState() // Флаг обновления
+    val selectedTypes by viewModel.selectedTypes.collectAsState() // Выбранные фильтры
+    val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList()) // Все пазлы без фильтрации
 
-    val scrollState = rememberScrollState() // для вертикального скролла
-    val drawerState = rememberDrawerState(DrawerValue.Closed) // состояние бокового меню
-    val scope = rememberCoroutineScope() // корутина для открытия/закрытия drawer
+    val scrollState = rememberScrollState() // Состояние вертикального скролла
+    val drawerState = rememberDrawerState(DrawerValue.Closed) // Состояние бокового меню
+    val scope = rememberCoroutineScope() // CoroutineScope для управления Drawer
 
-    // Состояния диалогов и секций
-    var showAboutDialog by remember { mutableStateOf(false) }
-    var showResetConfirmDialog by remember { mutableStateOf(false) }
-    var showFilterSection by remember { mutableStateOf(false) }
-    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) }
+    // -------------------- Состояния диалогов и секций --------------------
+    var showAboutDialog by remember { mutableStateOf(false) } // Диалог "О программе"
+    var showResetConfirmDialog by remember { mutableStateOf(false) } // Подтверждение сброса прогресса
+    var showFilterSection by remember { mutableStateOf(false) } // Секция фильтров в Drawer
+    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) } // Диалог очистки локальной памяти
 
-    val allTypes = remember(allPuzzles) { allPuzzles.map { it.puzzle.type }.distinct() } // уникальные типы пазлов
+    // Получаем уникальные типы пазлов для фильтров
+    val allTypes = remember(allPuzzles) { allPuzzles.map { it.puzzle.type }.distinct() }
 
-    // Локализация типов
+    // -------------------- Локализация типов --------------------
     val typeLocalizationMap = mapOf(
         "cryptorhyme" to R.string.type_cryptorhyme,
         "differences" to R.string.type_differences,
@@ -66,10 +68,11 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
         "chess" to R.string.type_chess
     )
 
-    // Сброс индекса, если он вышел за границы после фильтрации
+    // -------------------- Автосброс индекса --------------------
+    // Если после фильтрации текущий индекс вышел за пределы списка
     LaunchedEffect(puzzles.size, currentIndex) {
         if (puzzles.isNotEmpty() && currentIndex >= puzzles.size) {
-            viewModel.resetIndex()
+            viewModel.resetIndex() // Сбрасываем индекс на последний допустимый
         }
     }
 
@@ -86,11 +89,11 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                 )
                 HorizontalDivider()
 
-                // Секция фильтров
+                // -------------------- Секция фильтров --------------------
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.filters)) },
                     selected = showFilterSection,
-                    onClick = { showFilterSection = !showFilterSection }
+                    onClick = { showFilterSection = !showFilterSection } // Открытие/закрытие секции
                 )
 
                 // Анимированная видимость секции фильтров
@@ -113,7 +116,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                             ) {
                                 Checkbox(
                                     checked = checked,
-                                    onCheckedChange = { viewModel.toggleFilter(type) } // меняем фильтр
+                                    onCheckedChange = { viewModel.toggleFilter(type) } // Изменяем фильтр
                                 )
                                 Text(
                                     text = localizedType,
@@ -127,13 +130,13 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
 
                 HorizontalDivider()
 
-                // Другие пункты меню
+                // -------------------- Другие пункты меню --------------------
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.about)) },
                     selected = false,
                     onClick = {
                         showAboutDialog = true
-                        scope.launch { drawerState.close() } // закрываем меню
+                        scope.launch { drawerState.close() } // Закрываем Drawer
                     }
                 )
 
@@ -155,7 +158,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                     }
                 )
 
-                // Диалог очистки памяти
+                // -------------------- Диалог очистки памяти --------------------
                 if (showClearMemoryConfirmDialog) {
                     AlertDialog(
                         onDismissRequest = { showClearMemoryConfirmDialog = false },
@@ -163,7 +166,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         text = { Text(stringResource(R.string.confirm_clear_memory)) },
                         confirmButton = {
                             TextButton(onClick = {
-                                clearLocalPuzzlesFolder(context)
+                                clearLocalPuzzlesFolder(context) // Очистка локальной папки
                                 Toast.makeText(
                                     context,
                                     context.getString(R.string.memory_cleared),
@@ -180,7 +183,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                     )
                 }
 
-                // Диалог сброса прогресса
+                // -------------------- Диалог сброса прогресса --------------------
                 if (showResetConfirmDialog) {
                     AlertDialog(
                         onDismissRequest = { showResetConfirmDialog = false },
@@ -219,7 +222,11 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
 
             val screenWidthPx = with(context.resources.displayMetrics) { widthPixels.toFloat() }
 
-            // Основная зона кликов: свайпы и тап
+            // -------------------- Основная зона кликов --------------------
+            // Свайпы и тап по экрану:
+            // - Левая часть -> предыдущий пазл
+            // - Правая часть -> следующий пазл
+            // - Средняя часть -> показать/скрыть ответ
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -228,9 +235,9 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         detectTapGestures { offset ->
                             val x = offset.x
                             when {
-                                x < screenWidthPx * 0.2f -> viewModel.prevPuzzle() // тап слева
-                                x > screenWidthPx * 0.8f -> viewModel.nextPuzzle() // тап справа
-                                else -> viewModel.toggleAnswer() // средняя часть экрана — показать ответ
+                                x < screenWidthPx * 0.2f -> viewModel.prevPuzzle()
+                                x > screenWidthPx * 0.8f -> viewModel.nextPuzzle()
+                                else -> viewModel.toggleAnswer()
                             }
                         }
                     }
@@ -285,7 +292,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                                 )
                             }
 
-                            // Изображение
+                            // Изображение пазла
                             val imagePath = if (showAnswer) puzzle.a else puzzle.q
                             PuzzleImageFromPath(
                                 filePath = imagePath,

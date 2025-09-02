@@ -110,5 +110,19 @@
       "en": "1. Rb7-d7 Na6-b8 2. Rd7-a7",
       "ru": "1. Лb7-d7 Ka6-b8 2. Лd7-a7"
     }
+  },
+  {
+    "id": 9,
+    "type": "differences",
+    "q": "puzzle9_q.png",
+    "a": "puzzle9_a.png",
+    "question": {
+      "en": "question",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
   }
 ]
