@@ -36,6 +36,9 @@
     <string name="type_differences">Найди различия</string>
     <string name="type_matches">Спички</string>
     <string name="type_math">Математические задачи</string>
-    <string name="type_chess">Шахматы</string>
+    <string name="type_chess">Шахматы</string>  opening_remarks
+    <string name="opening_remarks">Вступительное слово</string>
+    <string name="opening_remarks_txt">Вступительное слово текст</string>
+
 
 </resources>

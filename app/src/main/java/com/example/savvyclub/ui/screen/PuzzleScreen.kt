@@ -40,9 +40,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val currentIndex by viewModel.currentIndex.collectAsState(initial = 0) // Индекс текущего пазла
     val showAnswer by viewModel.showAnswer.collectAsState(initial = false) // Показывать ли ответ
     val puzzles by viewModel.puzzles.collectAsState(initial = emptyList()) // Отфильтрованные пазлы
-    val downloadProgress by viewModel.downloadProgress.collectAsState() // Прогресс загрузки
-    val unpackProgress by viewModel.unpackProgress.collectAsState() // Прогресс распаковки
-    val isUpdating by viewModel.isUpdating.collectAsState() // Флаг обновления
     val selectedTypes by viewModel.selectedTypes.collectAsState() // Выбранные фильтры
     val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList()) // Все пазлы без фильтрации
 
@@ -51,6 +48,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
     val scope = rememberCoroutineScope() // CoroutineScope для управления Drawer
 
     // -------------------- Состояния диалогов и секций --------------------
+    var showOpeningRemarksDialog by remember { mutableStateOf(false) } // Диалог "Вступительное слово"
     var showAboutDialog by remember { mutableStateOf(false) } // Диалог "О программе"
     var showResetConfirmDialog by remember { mutableStateOf(false) } // Подтверждение сброса прогресса
     var showFilterSection by remember { mutableStateOf(false) } // Секция фильтров в Drawer
@@ -87,6 +85,19 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(16.dp)
                 )
+
+                HorizontalDivider()
+
+                // -------------------- Вступительное слово --------------------
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.opening_remarks)) },
+                    selected = false,
+                    onClick = {
+                        showOpeningRemarksDialog = true
+                        scope.launch { drawerState.close() } // Закрываем Drawer
+                    }
+                )
+
                 HorizontalDivider()
 
                 // -------------------- Секция фильтров --------------------
@@ -244,28 +255,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
             ) {
 
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // -------------------- Прогресс обновления --------------------
-                    if (isUpdating) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "${stringResource(R.string.loading)}: ${(downloadProgress * 100).toInt()}%")
-                            LinearProgressIndicator(
-                                progress = { downloadProgress },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = "${stringResource(R.string.unpacking)}: ${(unpackProgress * 100).toInt()}%")
-                            LinearProgressIndicator(
-                                progress = { unpackProgress },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
                     // -------------------- Основной контент пазла --------------------
                     currentPuzzleItem?.let { puzzleItem ->
                         val puzzle = puzzleItem.puzzle
@@ -330,6 +319,20 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         }
                     }
                 }
+            }
+
+            // -------------------- Диалог "Вступительное слово" --------------------
+            if (showOpeningRemarksDialog) {
+                AlertDialog(
+                    onDismissRequest = { showOpeningRemarksDialog = false },
+                    confirmButton = {
+                        TextButton(onClick = { showOpeningRemarksDialog = false }) {
+                            Text(stringResource(R.string.dialog_ok))
+                        }
+                    },
+                    title = { Text(stringResource(R.string.opening_remarks)) },
+                    text = { Text(stringResource(R.string.opening_remarks_txt)) }
+                )
             }
 
             // -------------------- Диалог "О программе" --------------------

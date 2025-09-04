@@ -5,12 +5,12 @@
     "q": "puzzle1_q.png",
     "a": "puzzle1_a.png",
     "question": {
-      "en": "question",
-      "ru": "вопрос"
+      "en": "Solve the most famous cryptorithm published by Henry Dudeney in 1924 in the Strand Magazine",
+      "ru": "Решите самый  известный криптарифм, опубликованный Генри Дьюдени в 1924 году в журнале Strand Magazine"
     },
     "answer": {
-      "en": "answer",
-      "ru": "ответ"
+      "en": "The method for solving this example is as follows:\nThe largest 5 digit number that can be made from two 4 digit number is 9999+9999=19998, so M=1.\nWith M=1, the largest sum we can make now is 9999+1999=11998. This means that O must be either a 1 or 0. We have already used 1 so O=0.\nLooking at the third column of numbers, we know that E+0 cannot have a sum greater than 9, therefore there is no carryover into column two and S+1 must equal 10. So S=9.\nLooking at the third column of numbers again, we know that E+0≠N so there must be a carryover from column four which means that E+1=N. Using this equation and looking at column four, we can see that R must be either 9 or 8 with a carryover from column five. We have already used 9, so R=8.\nWe already know that N=E+1, so looking at the unused numbers we have these possibilities for N/E: (7/6),(6/5),(5/4),(4/3),(3/2). Looking at the right most column, we know that D+E=Y+10 or D=Y+10-E and we know that Y must be 2 or greater because the number 1 is already used. Now we try the possible values for E in this equation. If E=2 then D must by greater than 9, so its out. IF E=3 then D=9 which is already used, so thats out. Continue trying each possibility and you'll find the only possible answer. E=5.\nWe already know that N=E+1 so N=6.\nAll thats left is to solve D and Y and with the remaining numbers there is only one possibility: D=7 and Y=2.",
+      "ru": "Метод решения этого примера следующий:\nНаибольшее пятизначное число, которое можно составить из двух четырёхзначных чисел, — 9999+9999=19998, поэтому M=1.\nПри M=1 максимальная сумма, которую мы можем получить, составляет 9999 + 1999 = 11998. Это означает, что O должно быть равно либо 1, либо 0. Мы уже использовали 1, поэтому O=0.\nРассматривая третий столбец чисел, мы знаем, что сумма E+0 не может превышать 9, поэтому переноса во второй столбец нет, и S+1 должно быть равно 10. Таким образом, S=9.\nСнова взглянув на третий столбец чисел, мы знаем, что E+0≠N, поэтому должен быть перенос из четвёртого столбца, что означает, что E+1=N. Используя это уравнение и глядя на четвёртый столбец, мы видим, что R должно быть равно либо 9, либо 8 с переносом из пятого столбца. Мы уже использовали 9, поэтому R=8.\nМы уже знаем, что N=E+1, поэтому, глядя на неиспользованные числа, у нас есть следующие варианты для N/E: (7/6), (6/5), (5/4), (4/3), (3/2). Глядя на самый правый столбец, мы знаем, что D+E=Y+10 или D=Y+10-E, и мы знаем, что Y должно быть 2 или больше, поскольку число 1 уже используется. Теперь перебираем возможные значения для E в этом уравнении. Если E=2, то D должно быть больше 9, поэтому вариант исключается. ЕСЛИ E=3, то D=9, который уже используется, поэтому вариант исключается. Продолжайте перебирать все варианты, и вы найдете единственный возможный ответ: E=5.\nМы уже знаем, что N=E+1, поэтому N=6.\nОсталось только решить D и Y, а с оставшимися числами есть только один вариант: D=7 и Y=2."
     }
   },
   {
@@ -147,6 +147,132 @@
     "question": {
       "en": "Move one match",
       "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 12,
+    "type": "cryptorhyme",
+    "q": "puzzle12_q.png",
+    "a": "puzzle12_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 13,
+    "type": "chess",
+    "q": "puzzle13_q.png",
+    "a": "puzzle13_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves",
+      "ru": "Белые начинают и ставят мат в 2 хода"
+    },
+    "answer": {
+      "en": "1. Qf1-a1 g6-g5 2. Kf6-f7",
+      "ru": "1. Фf1-a1 g6-g5 2. Kpf6-f7"
+    }
+  },
+  {
+    "id": 14,
+    "type": "matches",
+    "q": "puzzle14_q.png",
+    "a": "puzzle14_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 15,
+    "type": "chess",
+    "q": "puzzle15_q.png",
+    "a": "puzzle15_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Speckmann, Werner",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Speckmann, Werner"
+    },
+    "answer": {
+      "en": "1. f7-f8N Kc6-d6 2. Qа7-с5",
+      "ru": "1. f7-f8K Kpc6-d6 2. Фа7-с5"
+    }
+  },
+  {
+    "id": 16,
+    "type": "cryptorhyme",
+    "q": "puzzle16_q.png",
+    "a": "puzzle16_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 17,
+    "type": "matches",
+    "q": "puzzle17_q.png",
+    "a": "puzzle17_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 18,
+    "type": "chess",
+    "q": "puzzle18_q.png",
+    "a": "puzzle18_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Benoit, Marc",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Benoit, Marc"
+    },
+    "answer": {
+      "en": "1. Qf6-a6 b7-a6 2. Rb1-b8",
+      "ru": "1. Фf6-a6 b7-a6 2. Лb1-b8"
+    }
+  },
+  {
+    "id": 19,
+    "type": "cryptorhyme",
+    "q": "puzzle19_q.png",
+    "a": "puzzle19_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 20,
+    "type": "cryptorhyme",
+    "q": "puzzle20_q.png",
+    "a": "puzzle20_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
     },
     "answer": {
       "en": "answer",

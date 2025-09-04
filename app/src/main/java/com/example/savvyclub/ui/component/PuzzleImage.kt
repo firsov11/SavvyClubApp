@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -28,14 +30,16 @@ fun PuzzleImageFromPath(
     source: PuzzleSource,
     modifier: Modifier = Modifier,
     onTap: (() -> Unit)? = null,
-    tintAlpha: Float = 0.35f // прозрачность тонировки, 0..1
+    tintAlpha: Float = 0.27f, // прозрачность тонировки (0..1)
+    grayscale: Boolean = true // включить/выключить обесцвечивание
 ) {
     val context = LocalContext.current
     val isLight = !isSystemInDarkTheme() // true для светлой темы, false для тёмной
 
-    // Цвет тонировки в зависимости от темы
-    val tintColor = if (isLight) Color(0xFF808000) else Color(0xFF657E39)
+    // Цвет тонировки: оливковый для светлой темы и болотный для тёмной
+    val tintColor = if (isLight) Color(0xFF808000) else Color(0xFF738A4B)
 
+    // Загружаем картинку из assets или из локальной папки puzzles/
     val imageBitmap: ImageBitmap? = remember(filePath, source) {
         try {
             val bitmap = when (source) {
@@ -58,26 +62,32 @@ fun PuzzleImageFromPath(
         }
     }
 
-    imageBitmap?.let {
+    imageBitmap?.let { bitmap ->
         Box(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(8.dp)
                 .then(
+                    // Если передали обработчик onTap, вешаем жест нажатия
                     if (onTap != null) Modifier.pointerInput(Unit) {
                         detectTapGestures(onTap = { onTap() })
                     } else Modifier
                 )
         ) {
-            // Картинка растягивается на всю ширину и сохраняет пропорции
+            // Матрица для обесцвечивания (saturation = 0 делает картинку ч/б)
+            val grayscaleMatrix = ColorMatrix().apply { setToSaturation(0f) }
+
+            // Рисуем изображение
             Image(
-                bitmap = it,
+                bitmap = bitmap,
                 contentDescription = null,
                 contentScale = ContentScale.FillWidth,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                // Если включен режим grayscale — применяем фильтр
+                colorFilter = if (grayscale) ColorFilter.colorMatrix(grayscaleMatrix) else null
             )
 
-            // Оверлей точно совпадает с картинкой
+            // Рисуем полупрозрачный цветной оверлей поверх картинки
             Box(
                 modifier = Modifier
                     .matchParentSize()

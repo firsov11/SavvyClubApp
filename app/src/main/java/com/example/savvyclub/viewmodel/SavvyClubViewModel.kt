@@ -51,15 +51,12 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
 
     // Флаг, что идет обновление
     private val _isUpdating = MutableStateFlow(false)
-    val isUpdating: StateFlow<Boolean> = _isUpdating.asStateFlow()
 
     // Прогресс скачивания обновлений
     private val _downloadProgress = MutableStateFlow(0f)
-    val downloadProgress: StateFlow<Float> = _downloadProgress.asStateFlow()
 
     // Прогресс распаковки обновлений
     private val _unpackProgress = MutableStateFlow(0f)
-    val unpackProgress: StateFlow<Float> = _unpackProgress.asStateFlow()
 
     // Кэш решённых ID для ускорения работы
     private var solvedCache: MutableSet<Int>? = null

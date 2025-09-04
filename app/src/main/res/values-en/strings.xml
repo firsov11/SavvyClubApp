@@ -37,6 +37,8 @@
     <string name="type_matches">Matchstick Puzzles</string>
     <string name="type_math">Math Puzzles</string>
     <string name="type_chess">Chess Puzzles</string>
+    <string name="opening_remarks">Opening remarks</string>
+    <string name="opening_remarks_txt">Opening remarks text</string>
 
 
 
