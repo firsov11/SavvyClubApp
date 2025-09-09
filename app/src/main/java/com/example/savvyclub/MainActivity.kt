@@ -8,9 +8,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            SavvyClubApp(context = this)
+            // Передаём application вместо this
+            SavvyClubApp(application = application)
         }
     }
-
 }
-

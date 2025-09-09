@@ -1,90 +1,274 @@
 package com.example.savvyclub.viewmodel
 
-import android.content.Context
-import android.content.SharedPreferences
-import androidx.lifecycle.ViewModel
-import com.example.savvyclub.data.model.Puzzle
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.savvyclub.data.PuzzleLoader
+import com.example.savvyclub.data.PuzzleUpdateManager
+import com.example.savvyclub.data.model.PuzzleItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
-class SavvyClubViewModel(
-    private val context: Context,
-    private val allPuzzles: List<Puzzle>
-) : ViewModel() {
+// ViewModel для приложения SavvyClub, управляет состоянием головоломок
+class SavvyClubViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("savvy_prefs", Context.MODE_PRIVATE)
+    // SharedPreferences для хранения текущего прогресса и состояния
+    private val prefs = application.getSharedPreferences("puzzle_prefs", Application.MODE_PRIVATE)
 
-    private val _currentPuzzle = MutableStateFlow<Puzzle?>(null)
-    val currentPuzzle: StateFlow<Puzzle?> = _currentPuzzle
+    // Ключи для SharedPreferences
+    private val keyIndex = "current_index"         // текущий индекс головоломки
+    private val keyShowAnswer = "show_answer"     // показывать ли ответ
+    private val solvedKey = "solved_ids_set"      // ID решённых головоломок
 
-    private val _showAnswer = MutableStateFlow(false)
-    val showAnswer: StateFlow<Boolean> = _showAnswer
+    // Все головоломки (локальные + ассеты)
+    private val _allPuzzles = MutableStateFlow<List<PuzzleItem>>(emptyList())
+    val allPuzzles: StateFlow<List<PuzzleItem>> = _allPuzzles.asStateFlow()
 
-    // Храним ID просмотренных ответов как строки
-    private var viewedAnswers: MutableSet<String> =
-        prefs.getStringSet("viewed_answers", emptySet())?.toMutableSet() ?: mutableSetOf()
+    // Отфильтрованные головоломки (по выбранным типам)
+    private val _puzzles = MutableStateFlow<List<PuzzleItem>>(emptyList())
+    val puzzles: StateFlow<List<PuzzleItem>> = _puzzles.asStateFlow()
 
-    // Список доступных головоломок (фильтрация по непросмотренным)
-    private var availablePuzzles: List<Puzzle> = filterAvailablePuzzles()
+    // Индекс текущей головоломки
+    private val _currentIndex = MutableStateFlow(prefs.getInt(keyIndex, 0))
+    val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
 
-    private var currentIndex = 0
+    // Показывать ли ответ
+    private val _showAnswer = MutableStateFlow(prefs.getBoolean(keyShowAnswer, false))
+    val showAnswer: StateFlow<Boolean> = _showAnswer.asStateFlow()
+
+    // Текущая головоломка
+    private val _currentPuzzle = MutableStateFlow<PuzzleItem?>(null)
+    val currentPuzzle: StateFlow<PuzzleItem?> = _currentPuzzle.asStateFlow()
+
+    // Выбранные фильтры по типу головоломки
+    private val _selectedTypes = MutableStateFlow<Set<String>>(emptySet())
+    val selectedTypes: StateFlow<Set<String>> = _selectedTypes.asStateFlow()
+
+    // Флаг, что идет обновление
+    private val _isUpdating = MutableStateFlow(false)
+
+    // Прогресс скачивания обновлений
+    private val _downloadProgress = MutableStateFlow(0f)
+
+    // Прогресс распаковки обновлений
+    private val _unpackProgress = MutableStateFlow(0f)
+
+    // Кэш решённых ID для ускорения работы
+    private var solvedCache: MutableSet<Int>? = null
 
     init {
-        updateCurrentPuzzle()
-    }
+        // Загружаем все локальные и ассетные головоломки
+        loadAllLocalAndAssets()
 
-    private fun filterAvailablePuzzles(): List<Puzzle> {
-        return allPuzzles.filter { it.id.toString() !in viewedAnswers }
-    }
-
-    private fun updateCurrentPuzzle() {
-        if (availablePuzzles.isNotEmpty()) {
-            if (currentIndex >= availablePuzzles.size) currentIndex = 0
-            _currentPuzzle.value = availablePuzzles[currentIndex]
-        } else {
-            _currentPuzzle.value = null
+        // Проверяем обновления в фоне с задержкой 1 сек
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(1000) // задержка 1 сек
+            checkForUpdatesInBackground()
         }
-        _showAnswer.value = false
     }
 
+
+    // Загружает все головоломки с устройства и из ассетов
+    private fun loadAllLocalAndAssets() {
+        viewModelScope.launch {
+            val context = getApplication<Application>()
+            val solved = getSolvedIds() // Получаем кэш решённых головоломок
+
+            val all = withContext(Dispatchers.IO) {
+                PuzzleLoader.loadAllPuzzlesWithSource(context)
+                    .filterNot { it.puzzle.id in solved } // исключаем уже решённые
+            }
+
+            _allPuzzles.value = all
+            applyFilter() // применяем фильтры (если есть)
+        }
+    }
+
+    // Добавление новых головоломок из пакета обновлений
+    private fun addPackagePuzzles(packageFolder: String) {
+        viewModelScope.launch {
+            val context = getApplication<Application>()
+            val solved = getSolvedIds()
+
+            val newItems = withContext(Dispatchers.IO) {
+                PuzzleLoader.loadFromPackage(context, packageFolder)
+            }
+
+            val filtered = newItems.filterNot { it.puzzle.id in solved }
+            if (filtered.isEmpty()) return@launch
+
+            _allPuzzles.value = _allPuzzles.value + filtered
+            applyFilter()
+        }
+    }
+
+    // Проверка обновлений в фоне
+    private fun checkForUpdatesInBackground() {
+        viewModelScope.launch {
+            try {
+                _isUpdating.value = true
+                _downloadProgress.value = 0f
+                _unpackProgress.value = 0f
+
+                val context = getApplication<Application>()
+                val manifestUrl = "https://drive.google.com/uc?export=download&id=18WfPI-rqRNeQbv1BdRU3to919EzYS0cJ"
+
+                val folderName = withContext(Dispatchers.IO) {
+                    PuzzleUpdateManager.checkForUpdatesWithPackage(
+                        context = context,
+                        manifestUrl = manifestUrl,
+                        onDownloadProgress = { _downloadProgress.value = it },
+                        onUnpackProgress = { _unpackProgress.value = it }
+                    )
+                }
+
+                if (folderName != null) {
+                    addPackagePuzzles(folderName) // добавляем новые головоломки
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isUpdating.value = false
+            }
+        }
+    }
+
+    // Применение фильтров по типу головоломки
+    private fun applyFilter() {
+        val filters = _selectedTypes.value
+        val allPuzzlesCopy = _allPuzzles.value.toList() // копия списка
+
+        viewModelScope.launch(Dispatchers.Default) {
+            val filtered = if (filters.isEmpty()) allPuzzlesCopy
+            else allPuzzlesCopy.filter { it.puzzle.type in filters }
+
+            val index = _currentIndex.value
+            val newIndex = if (filtered.isEmpty()) 0 else index.coerceAtMost(filtered.lastIndex)
+            val current = filtered.getOrNull(newIndex)
+
+            // Обновляем StateFlow на главном потоке
+            withContext(Dispatchers.Main) {
+                _puzzles.value = filtered
+                _currentIndex.value = newIndex
+                _currentPuzzle.value = current
+            }
+        }
+    }
+
+    // Включение/выключение фильтра
+    fun toggleFilter(type: String) {
+        val current = _selectedTypes.value.toMutableSet()
+        if (!current.add(type)) current.remove(type)
+        _selectedTypes.value = current
+        applyFilter()
+    }
+
+    // Переключение отображения ответа
     fun toggleAnswer() {
-        val puzzle = _currentPuzzle.value ?: return
-        val currentShow = _showAnswer.value
+        val current = _currentPuzzle.value ?: return
+        val show = !_showAnswer.value
+        _showAnswer.value = show
+        saveProgress(_currentIndex.value, show) // сохраняем прогресс
 
-        if (!currentShow) {
-            // Помечаем текущий пазл как просмотренный (ответ показан)
-            viewedAnswers.add(puzzle.id.toString())
-            prefs.edit().putStringSet("viewed_answers", viewedAnswers).apply()
-
-            availablePuzzles = filterAvailablePuzzles()
-            currentIndex = if (availablePuzzles.isEmpty()) 0
-            else currentIndex.coerceAtMost(availablePuzzles.size - 1)
+        if (show) {
+            addSolvedId(current.puzzle.id)
+            applyFilter() // обновляем список, исключая решённые
         }
-
-        _showAnswer.value = !currentShow
     }
 
+    // Переход к следующей головоломке
     fun nextPuzzle() {
-        val size = availablePuzzles.size
-        if (size == 0) return
-        currentIndex = (currentIndex + 1) % size
-        updateCurrentPuzzle()
+        val list = _puzzles.value
+        if (list.isEmpty()) return
+
+        val curr = _currentPuzzle.value
+        if (curr != null && getSolvedIds().contains(curr.puzzle.id)) removeCurrentIfSolved()
+
+        val newList = _puzzles.value
+        if (newList.isEmpty()) return
+
+        _currentIndex.value = (_currentIndex.value + 1) % newList.size
+        _showAnswer.value = false
+        saveProgress(_currentIndex.value, false)
+        _currentPuzzle.value = newList[_currentIndex.value]
     }
 
+    // Переход к предыдущей головоломке
     fun prevPuzzle() {
-        val size = availablePuzzles.size
-        if (size == 0) return
-        currentIndex = if (currentIndex - 1 < 0) size - 1 else currentIndex - 1
-        updateCurrentPuzzle()
+        val list = _puzzles.value
+        if (list.isEmpty()) return
+
+        val curr = _currentPuzzle.value
+        if (curr != null && getSolvedIds().contains(curr.puzzle.id)) removeCurrentIfSolved()
+
+        val newList = _puzzles.value
+        if (newList.isEmpty()) return
+
+        _currentIndex.value = (_currentIndex.value - 1 + newList.size) % newList.size
+        _showAnswer.value = false
+        saveProgress(_currentIndex.value, false)
+        _currentPuzzle.value = newList[_currentIndex.value]
     }
 
+    // Сброс прогресса всех головоломок
     fun resetProgress() {
-        viewedAnswers.clear()
-        prefs.edit().remove("viewed_answers").apply()
-        // Применяем фильтр заново, чтобы гарантировать актуальный список
-        availablePuzzles = filterAvailablePuzzles()
-        currentIndex = 0
-        updateCurrentPuzzle()
+        saveSolvedIds(emptySet())
+        _currentIndex.value = 0
+        _showAnswer.value = false
+        saveProgress(0, false)
+        loadAllLocalAndAssets()
+    }
+
+    // Удаление текущей головоломки, если она решена
+    private fun removeCurrentIfSolved() {
+        val curr = _currentPuzzle.value ?: return
+        val solved = getSolvedIds()
+        if (solved.contains(curr.puzzle.id)) {
+            _allPuzzles.value = _allPuzzles.value.filter { it.puzzle.id != curr.puzzle.id }
+            applyFilter()
+        }
+    }
+
+    // Сохранение прогресса (индекс + показывать ответ)
+    private fun saveProgress(index: Int, showAnswer: Boolean) {
+        prefs.edit {
+            putInt(keyIndex, index)
+            putBoolean(keyShowAnswer, showAnswer)
+        }
+    }
+
+    // Сброс индекса на 0
+    fun resetIndex() {
+        _currentIndex.value = 0
+        _currentPuzzle.value = _puzzles.value.getOrNull(0)
+    }
+
+    // Получение множества ID решённых головоломок
+    private fun getSolvedIds(): MutableSet<Int> {
+        solvedCache?.let { return it } // если уже есть кэш
+
+        val raw = prefs.getStringSet(solvedKey, emptySet()) ?: emptySet()
+        val set = raw.mapNotNull { it.toIntOrNull() }.toMutableSet()
+        solvedCache = set
+        return set
+    }
+
+    // Сохранение множества ID решённых головоломок
+    private fun saveSolvedIds(ids: Set<Int>) {
+        solvedCache = ids.toMutableSet()
+        prefs.edit {
+            putStringSet(solvedKey, ids.map { it.toString() }.toSet())
+        }
+    }
+
+    // Добавление одного решённого ID
+    private fun addSolvedId(id: Int) {
+        val ids = getSolvedIds()
+        if (ids.add(id)) saveSolvedIds(ids)
     }
 }
