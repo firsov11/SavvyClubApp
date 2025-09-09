@@ -40,8 +40,8 @@ fun PuzzleImageFromPath(
     val context = LocalContext.current
     val isLight = !isSystemInDarkTheme() // true для светлой темы, false для тёмной
 
-    // Цвет тонировки: оливковый для светлой темы и болотный для тёмной
-    val tintColor = if (isLight) Color(0xFF808000) else Color(0xFF738A4B)
+    // Цвет тонировки
+    val tintColor = if (isLight) Color(0xFF808000) else Color(0xFF9DA861)
 
     // Загружаем картинку из assets или из локальной папки puzzles/
     val imageBitmap: ImageBitmap? = remember(filePath, source) {

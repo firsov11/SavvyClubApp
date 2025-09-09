@@ -474,5 +474,47 @@
       "en": "1. Rd8-d2 Kg2-f3 2. Qb1-d3",
       "ru": "1. Лd8-d2 Kpg2-f3 2. Фb1-d3"
     }
+  },
+  {
+    "id": 35,
+    "type": "chess",
+    "q": "puzzle35_q.png",
+    "a": "puzzle35_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves.",
+      "ru": "Белые начинают и ставят мат в 2 хода."
+    },
+    "answer": {
+      "en": "1. Kf5-e4 Ke2-f2 2. Qh8-h2",
+      "ru": "1. Kpf5-e4 Kpe2-f2 2. Фh8-h2"
+    }
+  },
+  {
+    "id": 36,
+    "type": "chess",
+    "q": "puzzle36_q.png",
+    "a": "puzzle36_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves.",
+      "ru": "Белые начинают и ставят мат в 2 хода."
+    },
+    "answer": {
+      "en": "1. Qh3-c8 Kh5-h6 2. Qc8-h8",
+      "ru": "1. Фh3-c8 Kph5-h6 2. Фc8-h8"
+    }
+  },
+  {
+    "id": 37,
+    "type": "cryptorhyme",
+    "q": "puzzle37_q.png",
+    "a": "puzzle37_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
   }
 ]
