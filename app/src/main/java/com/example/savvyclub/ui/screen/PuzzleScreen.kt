@@ -26,8 +26,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -253,6 +258,17 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         }
                     }
             ) {
+
+                // 🔹 Фон-картинка с прозрачностью
+                Image(
+                    painter = painterResource(R.drawable.bg_puzzles),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.11f,
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground) // авто-подстройка под тему
+
+                )
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     // -------------------- Основной контент пазла --------------------

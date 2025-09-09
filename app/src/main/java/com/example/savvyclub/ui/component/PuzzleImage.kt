@@ -9,6 +9,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -20,9 +21,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.savvyclub.data.model.PuzzleSource
 import java.io.File
+import com.example.savvyclub.R
+
 
 @Composable
 fun PuzzleImageFromPath(
@@ -85,6 +89,16 @@ fun PuzzleImageFromPath(
                 modifier = Modifier.fillMaxWidth(),
                 // Если включен режим grayscale — применяем фильтр
                 colorFilter = if (grayscale) ColorFilter.colorMatrix(grayscaleMatrix) else null
+            )
+
+            // Полупрозрачная текстура сверху
+            Image(
+                painter = painterResource(id = R.drawable.kletka), // твоя текстура
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.045f, // прозрачность, чтобы текстура не перебивала изображение
+//                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
             )
 
             // Рисуем полупрозрачный цветной оверлей поверх картинки
