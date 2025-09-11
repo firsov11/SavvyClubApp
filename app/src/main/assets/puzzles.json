@@ -516,5 +516,202 @@
       "en": "answer",
       "ru": "ответ"
     }
+  },
+  {
+    "id": 38,
+    "type": "matches",
+    "q": "puzzle38_q.png",
+    "a": "puzzle38_a.png",
+    "question": {
+      "en": "Add one match",
+      "ru": "Добавьте одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 39,
+    "type": "differences",
+    "q": "puzzle39_q.png",
+    "a": "puzzle39_a.png",
+    "question": {
+      "en": "Find 5 differences",
+      "ru": "Найдите 5 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 40,
+    "type": "differences",
+    "q": "puzzle40_q.png",
+    "a": "puzzle40_a.png",
+    "question": {
+      "en": "Find 5 differences",
+      "ru": "Найдите 5 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 41,
+    "type": "differences",
+    "q": "puzzle41_q.png",
+    "a": "puzzle41_a.png",
+    "question": {
+      "en": "Find 7 differences",
+      "ru": "Найдите 7 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 42,
+    "type": "differences",
+    "q": "puzzle42_q.png",
+    "a": "puzzle42_a.png",
+    "question": {
+      "en": "Find 7 differences",
+      "ru": "Найдите 7 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 43,
+    "type": "matches",
+    "q": "puzzle43_q.png",
+    "a": "puzzle43_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 44,
+    "type": "matches",
+    "q": "puzzle44_q.png",
+    "a": "puzzle44_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 45,
+    "type": "chess",
+    "q": "puzzle45_q.png",
+    "a": "puzzle45_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Matthäus, Hans Georg",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Matthäus, Hans Georg"
+    },
+    "answer": {
+      "en": "1. Bf4-e5 Bb2-c3 2. Qb4-b1",
+      "ru": "1. Cf4-e5 Cb2-c3 2. Фb4-b1"
+    }
+  },
+  {
+    "id": 46,
+    "type": "cryptorhyme",
+    "q": "puzzle46_q.png",
+    "a": "puzzle46_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 47,
+    "type": "cryptorhyme",
+    "q": "puzzle47_q.png",
+    "a": "puzzle47_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 48,
+    "type": "cryptorhyme",
+    "q": "puzzle48_q.png",
+    "a": "puzzle48_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 49,
+    "type": "chess",
+    "q": "puzzle49_q.png",
+    "a": "puzzle49_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Aistleitner, Franz",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Aistleitner, Franz"
+    },
+    "answer": {
+      "en": "1. Bc5-d6 Ke3-d4 2. Bd6-c5",
+      "ru": "1. Cc5-d6 Kpe3-d4 2. Cd6-c5"
+    }
+  },
+  {
+    "id": 50,
+    "type": "chess",
+    "q": "puzzle50_q.png",
+    "a": "puzzle50_a.png",
+    "question": {
+      "en": "White to start and checkmate in 3 moves. Author Mackenzie, Arthur Ford",
+      "ru": "Белые начинают и ставят мат в 3 хода. Автор Mackenzie, Arthur Ford"
+    },
+    "answer": {
+      "en": "1. Bb8-a7 Ka8-a7 2. c7-c8R Ka7-a6 3. Rc8-a8",
+      "ru": "1. Cb8-a7 Kpa8-a7 2. c7-c8Л Kpa7-a6 3. Лc8-a8"
+    }
+  },
+  {
+    "id": 51,
+    "type": "chess",
+    "q": "puzzle51_q.png",
+    "a": "puzzle51_a.png",
+    "question": {
+      "en": "White to start and checkmate in 3 moves. Author Meyer, Heinrich Friedrich",
+      "ru": "Белые начинают и ставят мат в 3 хода. Автор Meyer, Heinrich Friedrich"
+    },
+    "answer": {
+      "en": "1. Kc5-c6 Ka8-a7 2. c7-c8R Ka7-a6 3. Rc8-a8",
+      "ru": "1. Kpc5-c6 Kpa8-a7 2. c7-c8Л Kpa7-a6 3. Лc8-a8"
+    }
   }
+
 ]
