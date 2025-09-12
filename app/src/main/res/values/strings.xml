@@ -40,5 +40,18 @@
     <string name="opening_remarks">Вступительное слово</string>
     <string name="opening_remarks_txt">Вступительное слово текст</string>
 
+    <string name="login_title">Вход / Регистрация</string>
+    <string name="email">Email</string>
+    <string name="password">Пароль</string>
+    <string name="login">Войти</string>
+    <string name="login_google">Войти через Google</string>
+    <string name="cancel_1">Отмена</string>
+    <string name="login_register">Зарегистрироваться / Войти</string>
+    <string name="guest_welcome">Вы вошли как гость</string>
+    <string name="greeting_user">Привет, %1$s!</string>
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+
+
+
 
 </resources>

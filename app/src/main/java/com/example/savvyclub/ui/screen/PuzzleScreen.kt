@@ -1,6 +1,10 @@
 package com.example.savvyclub.ui.screen
 
-import android.widget.Toast
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,54 +16,51 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromPath
-import com.example.savvyclub.util.clearLocalPuzzlesFolder
+import com.example.savvyclub.ui.dialog.*
+import com.example.savvyclub.viewmodel.AuthViewModel
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
-
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PuzzleScreen(viewModel: SavvyClubViewModel) {
-    val context = LocalContext.current // Получаем контекст для Toast и файлов
+fun PuzzleScreen(
+    viewModel: SavvyClubViewModel,
+    authViewModel: AuthViewModel
+) {
+    val context = LocalContext.current
+    val activity = context as Activity
+    val scope = rememberCoroutineScope()
+
+    // -------------------- Авторизация --------------------
+    var showLoginDialog by remember { mutableStateOf(false) }
+    val userEmail by authViewModel.userState.collectAsState()
 
     // -------------------- Подписка на состояния ViewModel --------------------
-    // Compose будет автоматически обновлять UI при изменении этих состояний
-    val currentPuzzleItem by viewModel.currentPuzzle.collectAsState(initial = null) // Текущий пазл
-    val currentIndex by viewModel.currentIndex.collectAsState(initial = 0) // Индекс текущего пазла
-    val showAnswer by viewModel.showAnswer.collectAsState(initial = false) // Показывать ли ответ
-    val puzzles by viewModel.puzzles.collectAsState(initial = emptyList()) // Отфильтрованные пазлы
-    val selectedTypes by viewModel.selectedTypes.collectAsState() // Выбранные фильтры
-    val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList()) // Все пазлы без фильтрации
+    val currentPuzzleItem by viewModel.currentPuzzle.collectAsState(initial = null)
+    val currentIndex by viewModel.currentIndex.collectAsState(initial = 0)
+    val showAnswer by viewModel.showAnswer.collectAsState(initial = false)
+    val puzzles by viewModel.puzzles.collectAsState(initial = emptyList())
+    val selectedTypes by viewModel.selectedTypes.collectAsState()
+    val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList())
+    val scrollState = rememberScrollState()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    val scrollState = rememberScrollState() // Состояние вертикального скролла
-    val drawerState = rememberDrawerState(DrawerValue.Closed) // Состояние бокового меню
-    val scope = rememberCoroutineScope() // CoroutineScope для управления Drawer
+    // -------------------- Диалоговые состояния --------------------
+    var showOpeningRemarksDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    var showResetConfirmDialog by remember { mutableStateOf(false) }
+    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) }
+    var showFilterSection by remember { mutableStateOf(false) }
 
-    // -------------------- Состояния диалогов и секций --------------------
-    var showOpeningRemarksDialog by remember { mutableStateOf(false) } // Диалог "Вступительное слово"
-    var showAboutDialog by remember { mutableStateOf(false) } // Диалог "О программе"
-    var showResetConfirmDialog by remember { mutableStateOf(false) } // Подтверждение сброса прогресса
-    var showFilterSection by remember { mutableStateOf(false) } // Секция фильтров в Drawer
-    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) } // Диалог очистки локальной памяти
-
-    // Получаем уникальные типы пазлов для фильтров
+    // -------------------- Уникальные типы для фильтров --------------------
     val allTypes = remember(allPuzzles) { allPuzzles.map { it.puzzle.type }.distinct() }
 
     // -------------------- Локализация типов --------------------
@@ -71,48 +72,62 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
         "chess" to R.string.type_chess
     )
 
-    // -------------------- Автосброс индекса --------------------
-    // Если после фильтрации текущий индекс вышел за пределы списка
+    // -------------------- Автосброс индекса при фильтрации --------------------
     LaunchedEffect(puzzles.size, currentIndex) {
         if (puzzles.isNotEmpty() && currentIndex >= puzzles.size) {
-            viewModel.resetIndex() // Сбрасываем индекс на последний допустимый
+            viewModel.resetIndex()
         }
     }
 
-    // -------------------- Боковое меню (Drawer) --------------------
+    // -------------------- Drawer и боковое меню --------------------
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
                 Spacer(Modifier.height(12.dp))
+
+                // Приветствие и кнопки вход/выход
+                if (userEmail != null) {
+                    Text("Hello, $userEmail", modifier = Modifier.padding(16.dp))
+                    Button(
+                        onClick = { authViewModel.signOut() },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) { Text("Sign out") }
+                } else {
+                    Text("Hello, Guest", modifier = Modifier.padding(16.dp))
+                    Button(
+                        onClick = { showLoginDialog = true },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) { Text("Sign in / Register") }
+                }
+
                 Text(
                     text = stringResource(R.string.menu_title),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(16.dp)
                 )
 
-                HorizontalDivider()
+                Divider()
 
-                // -------------------- Вступительное слово --------------------
+                // 🔹 Вступительное слово
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.opening_remarks)) },
                     selected = false,
                     onClick = {
                         showOpeningRemarksDialog = true
-                        scope.launch { drawerState.close() } // Закрываем Drawer
+                        scope.launch { drawerState.close() }
                     }
                 )
 
-                HorizontalDivider()
+                Divider()
 
-                // -------------------- Секция фильтров --------------------
+                // 🔹 Фильтры
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.filters)) },
                     selected = showFilterSection,
-                    onClick = { showFilterSection = !showFilterSection } // Открытие/закрытие секции
+                    onClick = { showFilterSection = !showFilterSection }
                 )
 
-                // Анимированная видимость секции фильтров
                 AnimatedVisibility(
                     visible = showFilterSection,
                     enter = expandVertically() + fadeIn(),
@@ -132,7 +147,7 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                             ) {
                                 Checkbox(
                                     checked = checked,
-                                    onCheckedChange = { viewModel.toggleFilter(type) } // Изменяем фильтр
+                                    onCheckedChange = { viewModel.toggleFilter(type) }
                                 )
                                 Text(
                                     text = localizedType,
@@ -144,15 +159,15 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                     }
                 }
 
-                HorizontalDivider()
+                Divider()
 
-                // -------------------- Другие пункты меню --------------------
+                // 🔹 Остальные пункты меню
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.about)) },
                     selected = false,
                     onClick = {
                         showAboutDialog = true
-                        scope.launch { drawerState.close() } // Закрываем Drawer
+                        scope.launch { drawerState.close() }
                     }
                 )
 
@@ -173,56 +188,9 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         scope.launch { drawerState.close() }
                     }
                 )
-
-                // -------------------- Диалог очистки памяти --------------------
-                if (showClearMemoryConfirmDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showClearMemoryConfirmDialog = false },
-                        title = { Text(stringResource(R.string.clear_memory)) },
-                        text = { Text(stringResource(R.string.confirm_clear_memory)) },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                clearLocalPuzzlesFolder(context) // Очистка локальной папки
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.memory_cleared),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                showClearMemoryConfirmDialog = false
-                            }) { Text(stringResource(R.string.confirm)) }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showClearMemoryConfirmDialog = false }) {
-                                Text(stringResource(R.string.cancel))
-                            }
-                        }
-                    )
-                }
-
-                // -------------------- Диалог сброса прогресса --------------------
-                if (showResetConfirmDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showResetConfirmDialog = false },
-                        title = { Text(stringResource(R.string.dialog_title)) },
-                        text = { Text(stringResource(R.string.dialog_message)) },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                viewModel.resetProgress()
-                                showResetConfirmDialog = false
-                            }) { Text(stringResource(R.string.dialog_confirm)) }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showResetConfirmDialog = false }) {
-                                Text(stringResource(R.string.dialog_cancel))
-                            }
-                        }
-                    )
-                }
             }
         }
     ) {
-
-        // -------------------- Основной Scaffold --------------------
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -235,14 +203,8 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                 )
             }
         ) { padding ->
-
             val screenWidthPx = with(context.resources.displayMetrics) { widthPixels.toFloat() }
 
-            // -------------------- Основная зона кликов --------------------
-            // Свайпы и тап по экрану:
-            // - Левая часть -> предыдущий пазл
-            // - Правая часть -> следующий пазл
-            // - Средняя часть -> показать/скрыть ответ
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -258,20 +220,18 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                         }
                     }
             ) {
-
-                // 🔹 Фон-картинка с прозрачностью
+                // 🔹 Фон
                 Image(
                     painter = painterResource(R.drawable.bg_puzzles),
                     contentDescription = null,
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop,
                     alpha = 0.11f,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground) // авто-подстройка под тему
-
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
                 )
 
+                // -------------------- Основной контент --------------------
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // -------------------- Основной контент пазла --------------------
                     currentPuzzleItem?.let { puzzleItem ->
                         val puzzle = puzzleItem.puzzle
                         val lang = Locale.getDefault().language
@@ -288,7 +248,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Top
                         ) {
-                            // Текст вопроса или ответа
                             if (textToShow.isNotEmpty()) {
                                 Text(
                                     text = textToShow,
@@ -297,7 +256,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                                 )
                             }
 
-                            // Изображение пазла
                             val imagePath = if (showAnswer) puzzle.a else puzzle.q
                             PuzzleImageFromPath(
                                 filePath = imagePath,
@@ -307,7 +265,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Кнопка показать/скрыть ответ
                             Text(
                                 text = if (showAnswer) stringResource(R.string.button_show_answer)
                                 else stringResource(R.string.button_show_puzzle),
@@ -315,7 +272,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                                 modifier = Modifier.padding(8.dp)
                             )
 
-                            // Информация о текущем пазле
                             Text(
                                 text = "ID: ${puzzle.id}  (${currentIndex + 1} / ${puzzles.size})",
                                 style = MaterialTheme.typography.bodySmall,
@@ -323,7 +279,6 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                             )
                         }
                     } ?: run {
-                        // Если пазлов больше нет
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
@@ -337,32 +292,13 @@ fun PuzzleScreen(viewModel: SavvyClubViewModel) {
                 }
             }
 
-            // -------------------- Диалог "Вступительное слово" --------------------
-            if (showOpeningRemarksDialog) {
-                AlertDialog(
-                    onDismissRequest = { showOpeningRemarksDialog = false },
-                    confirmButton = {
-                        TextButton(onClick = { showOpeningRemarksDialog = false }) {
-                            Text(stringResource(R.string.dialog_ok))
-                        }
-                    },
-                    title = { Text(stringResource(R.string.opening_remarks)) },
-                    text = { Text(stringResource(R.string.opening_remarks_txt)) }
-                )
-            }
-
-            // -------------------- Диалог "О программе" --------------------
-            if (showAboutDialog) {
-                AlertDialog(
-                    onDismissRequest = { showAboutDialog = false },
-                    confirmButton = {
-                        TextButton(onClick = { showAboutDialog = false }) {
-                            Text(stringResource(R.string.dialog_ok))
-                        }
-                    },
-                    title = { Text(stringResource(R.string.about)) },
-                    text = { Text("SavvyClub v1.0\nAuthor: rza\n2025") }
-                )
+            // -------------------- Диалоги --------------------
+            if (showAboutDialog) AboutDialog { showAboutDialog = false }
+            if (showOpeningRemarksDialog) OpeningRemarksDialog { showOpeningRemarksDialog = false }
+            if (showClearMemoryConfirmDialog) ClearMemoryDialog(context) { showClearMemoryConfirmDialog = false }
+            if (showResetConfirmDialog) ResetProgressDialog(viewModel) { showResetConfirmDialog = false }
+            if (showLoginDialog) {
+                LoginDialog(authViewModel) { showLoginDialog = false }
             }
         }
     }

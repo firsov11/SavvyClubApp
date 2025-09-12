@@ -40,6 +40,18 @@
     <string name="opening_remarks">Opening remarks</string>
     <string name="opening_remarks_txt">Opening remarks text</string>
 
+    <string name="login_title">Login / Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="login_google">Login with Google</string>
+    <string name="cancel_1">Cancel</string>
+    <string name="login_register">Register / Login</string>
+    <string name="guest_welcome">You are logged in as Guest</string>
+    <string name="greeting_user">Hello, %1$s!</string>
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+
+
 
 
 </resources>
