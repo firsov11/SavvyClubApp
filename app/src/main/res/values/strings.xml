@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Клуб смекалистых</string>
+    <string name="button_prev">←</string>
+    <string name="button_next">→</string>
+    <string name="button_show_answer">Ответ</string>
+    <string name="button_show_puzzle">Головоломка</string>
+    <string name="image_not_found">Картинка не найдена</string>
+    <string name="reset_progress">Сбросить прогресс</string>
+    <string name="no_puzzles_left">Нет новых головоломок</string>
+    <string name="dialog_title">Сброс прогресса</string>
+    <string name="dialog_message">Вы уверены, что хотите сбросить прогресс? Ответы будут забыты.</string>
+    <string name="dialog_confirm">Сбросить</string>
+    <string name="dialog_cancel">Отмена</string>
+    <string name="about">О программе</string>
+    <string name="dialog_ok">ОК</string>
+    <string name="menu_title">Меню</string>
+
+    <string name="snackbar_prev">Предыдущая головоломка</string>
+    <string name="snackbar_next">Следующая головоломка</string>
+    <string name="snackbar_show_answer">Показать ответ</string>
+    <string name="snackbar_show_puzzle">Показать вопрос</string>
+
+    <!-- Новые строки -->
+    <string name="filters">Фильтры</string>
+    <string name="clear_memory">Очистить память</string>
+    <string name="confirm_clear_memory">Вы уверены, что хотите удалить все локальные пакеты паззлов?</string>
+    <string name="confirm">Да</string>
+    <string name="cancel">Нет</string>
+    <string name="loading">Загрузка</string>
+    <string name="unpacking">Распаковка</string>
+    <string name="memory_cleared">Память очищена</string>
+
+
+    <string name="type_cryptorhyme">Крипторифмы</string>
+    <string name="type_differences">Найди различия</string>
+    <string name="type_matches">Спички</string>
+    <string name="type_math">Математические задачи</string>
+    <string name="type_chess">Шахматы</string>  opening_remarks
+    <string name="opening_remarks">Вступительное слово</string>
+    <string name="opening_remarks_txt">Вступительное слово текст</string>
+
+
+
+
+</resources>

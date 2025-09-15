@@ -1,0 +1,42 @@
+# Android/IntelliJ
+*.iml
+.idea/
+.idea/*
+.gradle
+/local.properties
+/.idea/caches/
+/.idea/libraries/
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+Thumbs.db
+/build/
+/captures/
+/.externalNativeBuild/
+/.cxx/
+local.properties
+/app/google-services.json
+
+# Kotlin/Android Studio logs
+.kotlin/
+.kotlin/errors/
+
+# Gradle caches
+.gradle/
+build/
+
+# Android Studio specific
+.cxx/
+captures/
+.externalNativeBuild/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.tmp
+*.swp

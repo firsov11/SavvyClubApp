@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SavvyClub</string>
+    <string name="button_prev">←</string>
+    <string name="button_next">→</string>
+    <string name="button_show_answer">Answer</string>
+    <string name="button_show_puzzle">Puzzle</string>
+    <string name="image_not_found">Image not found</string>
+    <string name="reset_progress">Reset</string>
+    <string name="no_puzzles_left">No new puzzles</string>
+    <string name="dialog_title">Reset Progress</string>
+    <string name="dialog_message">Are you sure you want to reset progress? All seen answers will be forgotten.</string>
+    <string name="dialog_confirm">Reset</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="about">About</string>
+    <string name="dialog_ok">OK</string>
+    <string name="menu_title">Menu</string>
+
+    <string name="snackbar_prev">Previous puzzle</string>
+    <string name="snackbar_next">Next puzzle</string>
+    <string name="snackbar_show_answer">Show answer</string>
+    <string name="snackbar_show_puzzle">Show puzzle</string>
+
+    <!-- Новые строки -->
+    <string name="filters">Filters</string>
+    <string name="clear_memory">Clear memory</string>
+    <string name="confirm_clear_memory">Are you sure you want to delete all local puzzle packages?</string>
+    <string name="confirm">Yes</string>
+    <string name="cancel">No</string>
+    <string name="loading">Loading</string>
+    <string name="unpacking">Unpacking</string>
+    <string name="memory_cleared">Memory cleared</string>
+
+
+    <string name="type_cryptorhyme">Cryptorhymes</string>
+    <string name="type_differences">Find the Differences</string>
+    <string name="type_matches">Matchstick Puzzles</string>
+    <string name="type_math">Math Puzzles</string>
+    <string name="type_chess">Chess Puzzles</string>
+    <string name="opening_remarks">Opening remarks</string>
+    <string name="opening_remarks_txt">Opening remarks text</string>
+
+
+
+
+</resources>

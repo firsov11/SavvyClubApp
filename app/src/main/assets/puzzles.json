@@ -1,0 +1,717 @@
+[
+  {
+    "id": 1,
+    "type": "cryptorhyme",
+    "q": "puzzle1_q.png",
+    "a": "puzzle1_a.png",
+    "question": {
+      "en": "Solve the most famous cryptorithm published by Henry Dudeney in 1924 in the Strand Magazine",
+      "ru": "Решите самый  известный криптарифм, опубликованный Генри Дьюдени в 1924 году в журнале Strand Magazine"
+    },
+    "answer": {
+      "en": "The method for solving this example is as follows:\nThe largest 5 digit number that can be made from two 4 digit number is 9999+9999=19998, so M=1.\nWith M=1, the largest sum we can make now is 9999+1999=11998. This means that O must be either a 1 or 0. We have already used 1 so O=0.\nLooking at the third column of numbers, we know that E+0 cannot have a sum greater than 9, therefore there is no carryover into column two and S+1 must equal 10. So S=9.\nLooking at the third column of numbers again, we know that E+0≠N so there must be a carryover from column four which means that E+1=N. Using this equation and looking at column four, we can see that R must be either 9 or 8 with a carryover from column five. We have already used 9, so R=8.\nWe already know that N=E+1, so looking at the unused numbers we have these possibilities for N/E: (7/6),(6/5),(5/4),(4/3),(3/2). Looking at the right most column, we know that D+E=Y+10 or D=Y+10-E and we know that Y must be 2 or greater because the number 1 is already used. Now we try the possible values for E in this equation. If E=2 then D must by greater than 9, so its out. IF E=3 then D=9 which is already used, so thats out. Continue trying each possibility and you'll find the only possible answer. E=5.\nWe already know that N=E+1 so N=6.\nAll thats left is to solve D and Y and with the remaining numbers there is only one possibility: D=7 and Y=2.",
+      "ru": "Метод решения этого примера следующий:\nНаибольшее пятизначное число, которое можно составить из двух четырёхзначных чисел, — 9999+9999=19998, поэтому M=1.\nПри M=1 максимальная сумма, которую мы можем получить, составляет 9999 + 1999 = 11998. Это означает, что O должно быть равно либо 1, либо 0. Мы уже использовали 1, поэтому O=0.\nРассматривая третий столбец чисел, мы знаем, что сумма E+0 не может превышать 9, поэтому переноса во второй столбец нет, и S+1 должно быть равно 10. Таким образом, S=9.\nСнова взглянув на третий столбец чисел, мы знаем, что E+0≠N, поэтому должен быть перенос из четвёртого столбца, что означает, что E+1=N. Используя это уравнение и глядя на четвёртый столбец, мы видим, что R должно быть равно либо 9, либо 8 с переносом из пятого столбца. Мы уже использовали 9, поэтому R=8.\nМы уже знаем, что N=E+1, поэтому, глядя на неиспользованные числа, у нас есть следующие варианты для N/E: (7/6), (6/5), (5/4), (4/3), (3/2). Глядя на самый правый столбец, мы знаем, что D+E=Y+10 или D=Y+10-E, и мы знаем, что Y должно быть 2 или больше, поскольку число 1 уже используется. Теперь перебираем возможные значения для E в этом уравнении. Если E=2, то D должно быть больше 9, поэтому вариант исключается. ЕСЛИ E=3, то D=9, который уже используется, поэтому вариант исключается. Продолжайте перебирать все варианты, и вы найдете единственный возможный ответ: E=5.\nМы уже знаем, что N=E+1, поэтому N=6.\nОсталось только решить D и Y, а с оставшимися числами есть только один вариант: D=7 и Y=2."
+    }
+  },
+  {
+    "id": 2,
+    "type": "differences",
+    "q": "puzzle2_q.png",
+    "a": "puzzle2_a.png",
+    "question": {
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 3,
+    "type": "cryptorhyme",
+    "q": "puzzle3_q.png",
+    "a": "puzzle3_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 4,
+    "type": "differences",
+    "q": "puzzle4_q.png",
+    "a": "puzzle4_a.png",
+    "question": {
+      "en": "Find 15 differences",
+      "ru": "Найдите 15 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 5,
+    "type": "cryptorhyme",
+    "q": "puzzle5_q.png",
+    "a": "puzzle5_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 6,
+    "type": "matches",
+    "q": "puzzle6_q.png",
+    "a": "puzzle6_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 7,
+    "type": "math",
+    "q": "puzzle7_q.png",
+    "a": "puzzle7_a.png",
+    "question": {
+      "en": "Pythagoras said: \"My friend is he who is my second self, like the numbers XXY and XAB.\" These two numbers are remarkable in that the sum of the divisors of each of them is equal to the second number.\nWhat are these numbers?",
+      "ru": "Пифагор говорил: «Мой друг тот, кто является моим вторым я, как числа XXY и XAB».\nЭти два числа замечательны тем, что сумма делителей каждого из них равна второму числу.\nКакие это числа?"
+    },
+    "answer": {
+      "en": "220 and 284",
+      "ru": "220 и 284"
+    }
+  },
+  {
+    "id": 8,
+    "type": "chess",
+    "q": "puzzle8_q.png",
+    "a": "puzzle8_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves",
+      "ru": "Белые начинают и ставят мат в 2 хода"
+    },
+    "answer": {
+      "en": "1. Rb7-d7 Na6-b8 2. Rd7-a7",
+      "ru": "1. Лb7-d7 Ka6-b8 2. Лd7-a7"
+    }
+  },
+  {
+    "id": 9,
+    "type": "differences",
+    "q": "puzzle9_q.png",
+    "a": "puzzle9_a.png",
+    "question": {
+      "en": "question",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 10,
+    "type": "differences",
+    "q": "puzzle10_q.png",
+    "a": "puzzle10_a.png",
+    "question": {
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 11,
+    "type": "matches",
+    "q": "puzzle11_q.png",
+    "a": "puzzle11_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 12,
+    "type": "cryptorhyme",
+    "q": "puzzle12_q.png",
+    "a": "puzzle12_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 13,
+    "type": "chess",
+    "q": "puzzle13_q.png",
+    "a": "puzzle13_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves",
+      "ru": "Белые начинают и ставят мат в 2 хода"
+    },
+    "answer": {
+      "en": "1. Qf1-a1 g6-g5 2. Kf6-f7",
+      "ru": "1. Фf1-a1 g6-g5 2. Kpf6-f7"
+    }
+  },
+  {
+    "id": 14,
+    "type": "matches",
+    "q": "puzzle14_q.png",
+    "a": "puzzle14_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 15,
+    "type": "chess",
+    "q": "puzzle15_q.png",
+    "a": "puzzle15_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Speckmann, Werner",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Speckmann, Werner"
+    },
+    "answer": {
+      "en": "1. f7-f8N Kc6-d6 2. Qа7-с5",
+      "ru": "1. f7-f8K Kpc6-d6 2. Фа7-с5"
+    }
+  },
+  {
+    "id": 16,
+    "type": "cryptorhyme",
+    "q": "puzzle16_q.png",
+    "a": "puzzle16_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 17,
+    "type": "matches",
+    "q": "puzzle17_q.png",
+    "a": "puzzle17_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 18,
+    "type": "chess",
+    "q": "puzzle18_q.png",
+    "a": "puzzle18_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Benoit, Marc",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Benoit, Marc"
+    },
+    "answer": {
+      "en": "1. Qf6-a6 b7-a6 2. Rb1-b8",
+      "ru": "1. Фf6-a6 b7-a6 2. Лb1-b8"
+    }
+  },
+  {
+    "id": 19,
+    "type": "cryptorhyme",
+    "q": "puzzle19_q.png",
+    "a": "puzzle19_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 20,
+    "type": "cryptorhyme",
+    "q": "puzzle20_q.png",
+    "a": "puzzle20_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 21,
+    "type": "chess",
+    "q": "puzzle21_q.png",
+    "a": "puzzle21_a.png",
+    "question": {
+      "en": "White to start and checkmate in 4 moves",
+      "ru": "Белые начинают и ставят мат в 4 хода"
+    },
+    "answer": {
+      "en": "1. Bf2-h4 g5-h4 2. Kf1-f2 h4-h3 3. Kf2-f1 h3-h2 4. Ng4-f2",
+      "ru": "1. Cf2-h4 g5-h4 2. Kpf1-f2 h4-h3 3. Kpf2-f1 h3-h2 4. Kg4-f2"
+    }
+  },
+  {
+    "id": 22,
+    "type": "differences",
+    "q": "puzzle22_q.png",
+    "a": "puzzle22_a.png",
+    "question": {
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 23,
+    "type": "matches",
+    "q": "puzzle23_q.png",
+    "a": "puzzle23_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 24,
+    "type": "differences",
+    "q": "puzzle24_q.png",
+    "a": "puzzle24_a.png",
+    "question": {
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 25,
+    "type": "matches",
+    "q": "puzzle25_q.png",
+    "a": "puzzle25_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 26,
+    "type": "chess",
+    "q": "puzzle26_q.png",
+    "a": "puzzle26_a.png",
+    "question": {
+      "en": "White to start and checkmate in 3 moves. Author Speckmann, Werner",
+      "ru": "Белые начинают и ставят мат в 3 хода. Автор Speckmann, Werner"
+    },
+    "answer": {
+      "en": "1. Kc2-b3 Ka1-b1 2. Nc4-a3 Kb1-a1 3. Bh6-g7",
+      "ru": "1. Kpc2-b3 Kpa1-b1 2. Kc4-a3 Kpb1-a1 3. Ch6-g7"
+    }
+  },
+  {
+    "id": 27,
+    "type": "differences",
+    "q": "puzzle27_q.png",
+    "a": "puzzle27_a.png",
+    "question": {
+      "en": "Find 10 differences",
+      "ru": "Найдите 10 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 28,
+    "type": "matches",
+    "q": "puzzle28_q.png",
+    "a": "puzzle28_a.png",
+    "question": {
+      "en": "Remove one match",
+      "ru": "Уберите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 29,
+    "type": "chess",
+    "q": "puzzle29_q.png",
+    "a": "puzzle29_a.png",
+    "question": {
+      "en": "White to start and checkmate in 5 moves. Author Courtenay, Edward H.",
+      "ru": "Белые начинают и ставят мат в 5 хода. Автор Courtenay, Edward H."
+    },
+    "answer": {
+      "en": "1. Ne3-f5 Ka2-a1 2. Nf5-d4 Ka1-a2 3. Nd4-e2 Ka2-a1 4. Ne2-c1 a3-a2 5. Nc1-b3",
+      "ru": "1. Ke3-f5 Kpa2-a1 2. Kf5-d4 Kpa1-a2 3. Kd4-e2 Kpa2-a1 4. Ke2-c1 a3-a2 5. Kc1-b3"
+    }
+  },
+  {
+    "id": 30,
+    "type": "differences",
+    "q": "puzzle30_q.png",
+    "a": "puzzle30_a.png",
+    "question": {
+      "en": "Find 5 differences",
+      "ru": "Найдите 5 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 31,
+    "type": "matches",
+    "q": "puzzle31_q.png",
+    "a": "puzzle31_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 32,
+    "type": "cryptorhyme",
+    "q": "puzzle32_q.png",
+    "a": "puzzle32_a.png",
+    "question": {
+      "en": "Solve the cryptorhyme (vowels correspond to odd numbers, and consonants to even numbers)",
+      "ru": "Решите крипторифм (гласные буквы соответствуют нечетным цифрам, а согласные буквы - четным)"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 33,
+    "type": "chess",
+    "q": "puzzle33_q.png",
+    "a": "puzzle33_a.png",
+    "question": {
+      "en": "White to start and checkmate in 5 moves. Author Loyd, Samuel",
+      "ru": "Белые начинают и ставят мат в 5 хода. Автор Loyd, Samuel"
+    },
+    "answer": {
+      "en": "1. Ka3-b3 Ka1-b1 2. Bh2-d6 Kpb1-a1 3. Bd6-a3 Kpa1-b1 4. N22-c3 Kpb1-a1 5. Ba3-b2",
+      "ru": "1. Kpa3-b3 Kpa1-b1 2. Ch2-d6 Kpb1-a1 3. Cd6-a3 Kpa1-b1 4. K22-c3 Kpb1-a1 5. Ca3-b2"
+    }
+  },
+  {
+    "id": 34,
+    "type": "chess",
+    "q": "puzzle34_q.png",
+    "a": "puzzle34_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves.",
+      "ru": "Белые начинают и ставят мат в 2 хода."
+    },
+    "answer": {
+      "en": "1. Rd8-d2 Kg2-f3 2. Qb1-d3",
+      "ru": "1. Лd8-d2 Kpg2-f3 2. Фb1-d3"
+    }
+  },
+  {
+    "id": 35,
+    "type": "chess",
+    "q": "puzzle35_q.png",
+    "a": "puzzle35_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves.",
+      "ru": "Белые начинают и ставят мат в 2 хода."
+    },
+    "answer": {
+      "en": "1. Kf5-e4 Ke2-f2 2. Qh8-h2",
+      "ru": "1. Kpf5-e4 Kpe2-f2 2. Фh8-h2"
+    }
+  },
+  {
+    "id": 36,
+    "type": "chess",
+    "q": "puzzle36_q.png",
+    "a": "puzzle36_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves.",
+      "ru": "Белые начинают и ставят мат в 2 хода."
+    },
+    "answer": {
+      "en": "1. Qh3-c8 Kh5-h6 2. Qc8-h8",
+      "ru": "1. Фh3-c8 Kph5-h6 2. Фc8-h8"
+    }
+  },
+  {
+    "id": 37,
+    "type": "cryptorhyme",
+    "q": "puzzle37_q.png",
+    "a": "puzzle37_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 38,
+    "type": "matches",
+    "q": "puzzle38_q.png",
+    "a": "puzzle38_a.png",
+    "question": {
+      "en": "Add one match",
+      "ru": "Добавьте одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 39,
+    "type": "differences",
+    "q": "puzzle39_q.png",
+    "a": "puzzle39_a.png",
+    "question": {
+      "en": "Find 5 differences",
+      "ru": "Найдите 5 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 40,
+    "type": "differences",
+    "q": "puzzle40_q.png",
+    "a": "puzzle40_a.png",
+    "question": {
+      "en": "Find 5 differences",
+      "ru": "Найдите 5 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 41,
+    "type": "differences",
+    "q": "puzzle41_q.png",
+    "a": "puzzle41_a.png",
+    "question": {
+      "en": "Find 7 differences",
+      "ru": "Найдите 7 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 42,
+    "type": "differences",
+    "q": "puzzle42_q.png",
+    "a": "puzzle42_a.png",
+    "question": {
+      "en": "Find 7 differences",
+      "ru": "Найдите 7 отличий "
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 43,
+    "type": "matches",
+    "q": "puzzle43_q.png",
+    "a": "puzzle43_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 44,
+    "type": "matches",
+    "q": "puzzle44_q.png",
+    "a": "puzzle44_a.png",
+    "question": {
+      "en": "Move one match",
+      "ru": "Переместите одну спичку"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 45,
+    "type": "chess",
+    "q": "puzzle45_q.png",
+    "a": "puzzle45_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Matthäus, Hans Georg",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Matthäus, Hans Georg"
+    },
+    "answer": {
+      "en": "1. Bf4-e5 Bb2-c3 2. Qb4-b1",
+      "ru": "1. Cf4-e5 Cb2-c3 2. Фb4-b1"
+    }
+  },
+  {
+    "id": 46,
+    "type": "cryptorhyme",
+    "q": "puzzle46_q.png",
+    "a": "puzzle46_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 47,
+    "type": "cryptorhyme",
+    "q": "puzzle47_q.png",
+    "a": "puzzle47_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 48,
+    "type": "cryptorhyme",
+    "q": "puzzle48_q.png",
+    "a": "puzzle48_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 49,
+    "type": "chess",
+    "q": "puzzle49_q.png",
+    "a": "puzzle49_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Aistleitner, Franz",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Aistleitner, Franz"
+    },
+    "answer": {
+      "en": "1. Bc5-d6 Ke3-d4 2. Bd6-c5",
+      "ru": "1. Cc5-d6 Kpe3-d4 2. Cd6-c5"
+    }
+  },
+  {
+    "id": 50,
+    "type": "chess",
+    "q": "puzzle50_q.png",
+    "a": "puzzle50_a.png",
+    "question": {
+      "en": "White to start and checkmate in 3 moves. Author Mackenzie, Arthur Ford",
+      "ru": "Белые начинают и ставят мат в 3 хода. Автор Mackenzie, Arthur Ford"
+    },
+    "answer": {
+      "en": "1. Bb8-a7 Ka8-a7 2. c7-c8R Ka7-a6 3. Rc8-a8",
+      "ru": "1. Cb8-a7 Kpa8-a7 2. c7-c8Л Kpa7-a6 3. Лc8-a8"
+    }
+  },
+  {
+    "id": 51,
+    "type": "chess",
+    "q": "puzzle51_q.png",
+    "a": "puzzle51_a.png",
+    "question": {
+      "en": "White to start and checkmate in 3 moves. Author Meyer, Heinrich Friedrich",
+      "ru": "Белые начинают и ставят мат в 3 хода. Автор Meyer, Heinrich Friedrich"
+    },
+    "answer": {
+      "en": "1. Kc5-c6 Ka8-a7 2. c7-c8R Ka7-a6 3. Rc8-a8",
+      "ru": "1. Kpc5-c6 Kpa8-a7 2. c7-c8Л Kpa7-a6 3. Лc8-a8"
+    }
+  }
+
+]
