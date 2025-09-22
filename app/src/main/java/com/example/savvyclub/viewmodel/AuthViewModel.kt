@@ -19,75 +19,63 @@ import kotlinx.coroutines.launch
 class AuthViewModel : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val database = FirebaseDatabase.getInstance().reference
+
+    private val _userState = MutableStateFlow<String?>(auth.currentUser?.email)
+    val userState: StateFlow<String?> = _userState
 
     private val defaultAvatar = "res:${R.drawable.default_avatar}"
 
     private val _selectedAvatar = MutableStateFlow(defaultAvatar)
     val selectedAvatar: StateFlow<String> = _selectedAvatar
 
-    private val _userState = MutableStateFlow<String?>(auth.currentUser?.email)
-    val userState: StateFlow<String?> = _userState
-
     private lateinit var oneTapClient: SignInClient
 
     private val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
         val user = firebaseAuth.currentUser
         _userState.value = user?.email
-        // При изменении авторизации загружаем аватар из Firebase
-        loadAvatarFromFirebase(user?.uid)
+
+        if (user != null) {
+            loadAvatarForUser(user.uid, user.photoUrl?.toString())
+        } else {
+            _selectedAvatar.value = defaultAvatar
+        }
     }
 
     init {
         auth.addAuthStateListener(authListener)
+        auth.currentUser?.let { user ->
+            loadAvatarForUser(user.uid, user.photoUrl?.toString())
+        }
+    }
+
+    private fun loadAvatarForUser(uid: String, googleAvatarUrl: String?) {
         viewModelScope.launch {
-            auth.currentUser?.uid?.let { uid ->
-                FirebaseDatabase.getInstance()
-                    .getReference("users/$uid/avatar")
-                    .get()
-                    .addOnSuccessListener { snapshot ->
-                        val avatarFromDb = snapshot.getValue(String::class.java)
-                        if (!avatarFromDb.isNullOrEmpty()) {
-                            _selectedAvatar.value = avatarFromDb
-                        } else {
-                            // Если в базе пусто, проверяем Google avatar
-                            val googleAvatar = auth.currentUser?.photoUrl?.toString()
-                            _selectedAvatar.value = googleAvatar ?: defaultAvatar
-                            // Сохраняем в базе, чтобы потом не тянуть снова
-                            googleAvatar?.let {
-                                FirebaseDatabase.getInstance()
-                                    .getReference("users/$uid/avatar")
-                                    .setValue(it)
-                            }
-                        }
-                    }
+            val dbRef = FirebaseDatabase.getInstance().getReference("users/$uid/avatar")
+            dbRef.get().addOnSuccessListener { snapshot ->
+                val avatarFromDb = snapshot.getValue(String::class.java)
+                if (!avatarFromDb.isNullOrEmpty()) {
+                    _selectedAvatar.value = avatarFromDb
+                } else {
+                    // Если в базе пусто, используем Google avatar или дефолт
+                    val avatar = googleAvatarUrl ?: defaultAvatar
+                    _selectedAvatar.value = avatar
+                    // Сохраняем в базу
+                    dbRef.setValue(avatar)
+                }
+            }.addOnFailureListener {
+                // на случай ошибки, используем Google или дефолт
+                _selectedAvatar.value = googleAvatarUrl ?: defaultAvatar
             }
         }
     }
 
-    /**
-     * Устанавливаем аватар локально и сразу сохраняем в Firebase
-     */
     fun setSelectedAvatar(value: String) {
         _selectedAvatar.value = value
         auth.currentUser?.uid?.let { uid ->
-            database.child("users/$uid/avatar").setValue(value)
+            FirebaseDatabase.getInstance()
+                .getReference("users/$uid/avatar")
+                .setValue(value)
         }
-    }
-
-    /**
-     * Загружаем аватар из Firebase, только если он отличается от локального
-     */
-    private fun loadAvatarFromFirebase(uid: String?) {
-        if (uid == null) return
-        database.child("users/$uid/avatar")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val remoteAvatar = snapshot.getValue(String::class.java)
-                if (!remoteAvatar.isNullOrEmpty() && remoteAvatar != _selectedAvatar.value) {
-                    _selectedAvatar.value = remoteAvatar
-                }
-            }
     }
 
     fun initGoogleSignInClient(activity: Activity) {
@@ -110,15 +98,10 @@ class AuthViewModel : ViewModel() {
 
     fun signOut() {
         auth.signOut()
-        if (::oneTapClient.isInitialized) {
-            oneTapClient.signOut()
-        }
-        // Сбрасываем аватар на дефолтный
+        if (::oneTapClient.isInitialized) oneTapClient.signOut()
         _selectedAvatar.value = defaultAvatar
     }
 
-
-    // --- Google One Tap ---
     fun getSignInRequest(clientId: String): BeginSignInRequest {
         return BeginSignInRequest.builder()
             .setGoogleIdTokenRequestOptions(
@@ -156,6 +139,9 @@ class AuthViewModel : ViewModel() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 onResult(task.isSuccessful, task.exception?.localizedMessage)
+                task.result?.user?.let { user ->
+                    loadAvatarForUser(user.uid, user.photoUrl?.toString())
+                }
             }
     }
 
@@ -166,11 +152,7 @@ class AuthViewModel : ViewModel() {
     ) {
         oneTapClient.beginSignIn(request)
             .addOnSuccessListener { result ->
-                onSuccess(
-                    androidx.activity.result.IntentSenderRequest.Builder(
-                        result.pendingIntent.intentSender
-                    ).build()
-                )
+                onSuccess(androidx.activity.result.IntentSenderRequest.Builder(result.pendingIntent.intentSender).build())
             }
             .addOnFailureListener { e ->
                 onFailure(e.localizedMessage ?: "Unknown error")
