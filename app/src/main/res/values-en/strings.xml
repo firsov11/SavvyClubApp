@@ -14,7 +14,6 @@
     <string name="dialog_cancel">Cancel</string>
     <string name="about">About</string>
     <string name="dialog_ok">OK</string>
-    <string name="menu_title">Menu</string>
 
     <string name="snackbar_prev">Previous puzzle</string>
     <string name="snackbar_next">Next puzzle</string>

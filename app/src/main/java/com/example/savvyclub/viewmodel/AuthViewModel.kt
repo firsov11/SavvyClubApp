@@ -2,44 +2,101 @@ package com.example.savvyclub.viewmodel
 
 import android.app.Activity
 import android.content.Intent
-import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.savvyclub.R
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.android.gms.auth.api.identity.SignInCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
 
-    // Экземпляр Firebase Authentication
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val database = FirebaseDatabase.getInstance().reference
 
-    // ------------------ Состояние пользователя ------------------
-    // Приватный поток для хранения email текущего пользователя
+    private val defaultAvatar = "res:${R.drawable.default_avatar}"
+
+    private val _selectedAvatar = MutableStateFlow(defaultAvatar)
+    val selectedAvatar: StateFlow<String> = _selectedAvatar
+
     private val _userState = MutableStateFlow<String?>(auth.currentUser?.email)
-    // Публичная версия StateFlow для UI, чтобы можно было подписываться и получать обновления
     val userState: StateFlow<String?> = _userState
 
-    // Google One Tap клиент (инициализируем позже через initGoogleSignInClient)
     private lateinit var oneTapClient: SignInClient
 
-    // ------------------ Инициализация Google One Tap ------------------
+    private val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        val user = firebaseAuth.currentUser
+        _userState.value = user?.email
+        // При изменении авторизации загружаем аватар из Firebase
+        loadAvatarFromFirebase(user?.uid)
+    }
+
+    init {
+        auth.addAuthStateListener(authListener)
+        viewModelScope.launch {
+            auth.currentUser?.uid?.let { uid ->
+                FirebaseDatabase.getInstance()
+                    .getReference("users/$uid/avatar")
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        val avatarFromDb = snapshot.getValue(String::class.java)
+                        if (!avatarFromDb.isNullOrEmpty()) {
+                            _selectedAvatar.value = avatarFromDb
+                        } else {
+                            // Если в базе пусто, проверяем Google avatar
+                            val googleAvatar = auth.currentUser?.photoUrl?.toString()
+                            _selectedAvatar.value = googleAvatar ?: defaultAvatar
+                            // Сохраняем в базе, чтобы потом не тянуть снова
+                            googleAvatar?.let {
+                                FirebaseDatabase.getInstance()
+                                    .getReference("users/$uid/avatar")
+                                    .setValue(it)
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    /**
+     * Устанавливаем аватар локально и сразу сохраняем в Firebase
+     */
+    fun setSelectedAvatar(value: String) {
+        _selectedAvatar.value = value
+        auth.currentUser?.uid?.let { uid ->
+            database.child("users/$uid/avatar").setValue(value)
+        }
+    }
+
+    /**
+     * Загружаем аватар из Firebase, только если он отличается от локального
+     */
+    private fun loadAvatarFromFirebase(uid: String?) {
+        if (uid == null) return
+        database.child("users/$uid/avatar")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val remoteAvatar = snapshot.getValue(String::class.java)
+                if (!remoteAvatar.isNullOrEmpty() && remoteAvatar != _selectedAvatar.value) {
+                    _selectedAvatar.value = remoteAvatar
+                }
+            }
+    }
+
     fun initGoogleSignInClient(activity: Activity) {
-        // Инициализируем клиент Google One Tap для данного Activity
         oneTapClient = Identity.getSignInClient(activity)
     }
 
-    // ------------------ Email/Password методы ------------------
     fun signUpWithEmail(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                // Обновляем email в StateFlow
-                _userState.value = auth.currentUser?.email
-                // Возвращаем результат в UI через callback
                 onResult(task.isSuccessful, task.exception?.localizedMessage)
             }
     }
@@ -47,35 +104,34 @@ class AuthViewModel : ViewModel() {
     fun signInWithEmail(email: String, password: String, onResult: (Boolean, String?) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                _userState.value = auth.currentUser?.email
                 onResult(task.isSuccessful, task.exception?.localizedMessage)
             }
     }
 
     fun signOut() {
-        auth.signOut() // Выход из Firebase
-        _userState.value = null // Обнуляем состояние пользователя
+        auth.signOut()
         if (::oneTapClient.isInitialized) {
-            oneTapClient.signOut() // Выход из One Tap
+            oneTapClient.signOut()
         }
+        // Сбрасываем аватар на дефолтный
+        _selectedAvatar.value = defaultAvatar
     }
 
-    // ------------------ Google One Tap Sign-In ------------------
-    // Генерируем запрос для начала One Tap Sign-In
+
+    // --- Google One Tap ---
     fun getSignInRequest(clientId: String): BeginSignInRequest {
         return BeginSignInRequest.builder()
             .setGoogleIdTokenRequestOptions(
                 BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true) // включаем поддержку Google ID Token
-                    .setServerClientId(clientId) // обязательно web-client-id из Firebase
-                    .setFilterByAuthorizedAccounts(false) // показывать все аккаунты, не только ранее авторизованные
+                    .setSupported(true)
+                    .setServerClientId(clientId)
+                    .setFilterByAuthorizedAccounts(false)
                     .build()
             )
-            .setAutoSelectEnabled(false) // отключаем авто-выбор аккаунта
+            .setAutoSelectEnabled(false)
             .build()
     }
 
-    // Обрабатываем результат One Tap Sign-In
     fun handleGoogleSignInResult(intent: Intent?, onResult: (Boolean, String?) -> Unit) {
         if (intent == null) {
             onResult(false, "Google Sign-In canceled")
@@ -83,11 +139,9 @@ class AuthViewModel : ViewModel() {
         }
 
         try {
-            // Получаем credential из intent
             val credential: SignInCredential = oneTapClient.getSignInCredentialFromIntent(intent)
             val idToken = credential.googleIdToken
             if (idToken != null) {
-                // Авторизация через Firebase с Google токеном
                 firebaseAuthWithGoogle(idToken, onResult)
             } else {
                 onResult(false, "No ID token found")
@@ -97,31 +151,34 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    // Авторизация в Firebase через Google ID Token
     private fun firebaseAuthWithGoogle(idToken: String, onResult: (Boolean, String?) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
-                _userState.value = auth.currentUser?.email // обновляем email
                 onResult(task.isSuccessful, task.exception?.localizedMessage)
             }
     }
 
-    // Запускаем Google One Tap Sign-In
     fun startGoogleSignIn(
         request: BeginSignInRequest,
-        onSuccess: (IntentSenderRequest) -> Unit,
+        onSuccess: (androidx.activity.result.IntentSenderRequest) -> Unit,
         onFailure: (String) -> Unit
     ) {
         oneTapClient.beginSignIn(request)
             .addOnSuccessListener { result ->
-                // Отправляем IntentSender в UI для запуска
                 onSuccess(
-                    IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
+                    androidx.activity.result.IntentSenderRequest.Builder(
+                        result.pendingIntent.intentSender
+                    ).build()
                 )
             }
             .addOnFailureListener { e ->
                 onFailure(e.localizedMessage ?: "Unknown error")
             }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        auth.removeAuthStateListener(authListener)
     }
 }

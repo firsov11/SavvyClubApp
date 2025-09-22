@@ -1,4 +1,4 @@
-package com.example.savvyclub.ui
+package com.example.savvyclub
 
 import android.app.Application
 import androidx.compose.runtime.Composable

@@ -1,18 +1,21 @@
 package com.example.savvyclub.viewmodel
 
 import android.app.Application
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.savvyclub.data.PuzzleLoader
 import com.example.savvyclub.data.PuzzleUpdateManager
 import com.example.savvyclub.data.model.PuzzleItem
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.core.content.edit
+
 
 // ViewModel для приложения SavvyClub, управляет состоянием головоломок
 class SavvyClubViewModel(application: Application) : AndroidViewModel(application) {
@@ -61,9 +64,26 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
     // Кэш решённых ID для ускорения работы
     private var solvedCache: MutableSet<Int>? = null
 
+    // --- Firebase ---
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseDatabase.getInstance().reference
+
+    // --- Состояние профиля ---
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName
+
+    private val _userEmail = MutableStateFlow("")
+    val userEmail: StateFlow<String> = _userEmail
+
+    private val _selectedAvatar = MutableStateFlow("") // "res:12345" или url
+    val selectedAvatar: StateFlow<String> = _selectedAvatar
+
     init {
         // Загружаем все локальные и ассетные головоломки
         loadAllLocalAndAssets()
+
+        // сразу загружаем данные профиля
+        loadUserProfile()
 
         // Проверяем обновления в фоне с задержкой 1 сек
         viewModelScope.launch {
@@ -72,6 +92,44 @@ class SavvyClubViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    /** Сохраняем текущего пользователя в БД (например после логина через Google) */
+    fun saveCurrentUserToDb() {
+        val user = auth.currentUser ?: return
+        val uid = user.uid
+        val name = user.displayName ?: ""
+        val email = user.email ?: ""
+        val photoUrl = user.photoUrl?.toString() ?: ""
+
+        val userMap = mapOf(
+            "name" to name,
+            "email" to email,
+            "avatar" to photoUrl // сразу положим google url, если есть
+        )
+
+        db.child("users").child(uid).setValue(userMap)
+    }
+
+    /** Загружаем имя, email и аватар из БД */
+    fun loadUserProfile() {
+        val uid = auth.currentUser?.uid ?: return
+        db.child("users").child(uid)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                _userName.value = snapshot.child("name").getValue(String::class.java) ?: ""
+                _userEmail.value = snapshot.child("email").getValue(String::class.java) ?: ""
+                _selectedAvatar.value = snapshot.child("avatar").getValue(String::class.java) ?: ""
+            }
+    }
+
+    /** Сохраняем выбранный аватар в БД */
+    private fun saveAvatarToDb(value: String) {
+        val uid = auth.currentUser?.uid ?: return
+        // users/<uid>/avatar = "res:12345" или URL
+        db.child("users")
+            .child(uid)
+            .child("avatar")
+            .setValue(value)
+    }
 
     // Загружает все головоломки с устройства и из ассетов
     private fun loadAllLocalAndAssets() {

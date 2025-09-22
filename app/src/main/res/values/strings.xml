@@ -14,7 +14,6 @@
     <string name="dialog_cancel">Отмена</string>
     <string name="about">О программе</string>
     <string name="dialog_ok">ОК</string>
-    <string name="menu_title">Меню</string>
 
     <string name="snackbar_prev">Предыдущая головоломка</string>
     <string name="snackbar_next">Следующая головоломка</string>

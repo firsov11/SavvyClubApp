@@ -1,6 +1,5 @@
 package com.example.savvyclub.ui.screen
 
-import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -17,15 +16,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,23 +48,27 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromPath
 import com.example.savvyclub.ui.screen.dialog.AboutDialog
 import com.example.savvyclub.ui.screen.dialog.ClearMemoryDialog
 import com.example.savvyclub.ui.screen.dialog.LoginDialog
 import com.example.savvyclub.ui.screen.dialog.OpeningRemarksDialog
+import com.example.savvyclub.ui.screen.dialog.ProfileSettingsDialog
 import com.example.savvyclub.ui.screen.dialog.ResetProgressDialog
 import com.example.savvyclub.viewmodel.AuthViewModel
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,12 +77,15 @@ fun PuzzleScreen(
     authViewModel: AuthViewModel
 ) {
     val context = LocalContext.current
-    val activity = context as Activity
     val scope = rememberCoroutineScope()
+
+    var showProfileSettings by remember { mutableStateOf(false) }
 
     // -------------------- Авторизация --------------------
     var showLoginDialog by remember { mutableStateOf(false) }
     val userEmail by authViewModel.userState.collectAsState()
+    // подписываемся на StateFlow selectedAvatar из AuthViewModel
+    val avatar by authViewModel.selectedAvatar.collectAsState()
 
     // -------------------- Подписка на состояния ViewModel --------------------
     val currentPuzzleItem by viewModel.currentPuzzle.collectAsState(initial = null)
@@ -121,28 +130,66 @@ fun PuzzleScreen(
             ModalDrawerSheet {
                 Spacer(Modifier.height(12.dp))
 
-                // Приветствие и кнопки вход/выход
-                if (userEmail != null) {
-                    Text("Hello, $userEmail", modifier = Modifier.padding(16.dp))
-                    Button(
-                        onClick = { authViewModel.signOut() },
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) { Text("Sign out") }
-                } else {
-                    Text("Hello, Guest", modifier = Modifier.padding(16.dp))
-                    Button(
-                        onClick = { showLoginDialog = true },
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) { Text("Sign in / Register") }
+                // 🔹 блок профиля
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    when {
+                        avatar.startsWith("res:") -> {
+                            val resId = avatar.removePrefix("res:").toIntOrNull() ?: R.drawable.default_avatar
+                            Image(
+                                painter = painterResource(id = resId),
+                                contentDescription = "Avatar",
+                                modifier = Modifier.size(48.dp).clip(CircleShape)
+                            )
+                        }
+                        avatar.isNotEmpty() -> {
+                            AsyncImage(
+                                model = avatar,
+                                contentDescription = "Avatar",
+                                modifier = Modifier.size(48.dp).clip(CircleShape)
+                            )
+                        }
+                        else -> {
+                            Image(
+                                painter = painterResource(id = R.drawable.default_avatar),
+                                contentDescription = "Avatar",
+                                modifier = Modifier.size(48.dp).clip(CircleShape)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        if (userEmail != null) {
+                            Text("Hello, $userEmail")
+                            Button(
+                                onClick = { showProfileSettings = true },
+                                modifier = Modifier.padding(top = 4.dp)
+                            ) { Text("Настройки профиля") }
+
+                            Button(
+                                onClick = { authViewModel.signOut() },
+                                modifier = Modifier.padding(top = 4.dp)
+                            ) { Text("Sign out") }
+                        } else {
+                            Text("Hello, Guest")
+                            Button(
+                                onClick = { showLoginDialog = true },
+                                modifier = Modifier.padding(top = 4.dp)
+                            ) { Text("Sign in / Register") }
+                        }
+                    }
                 }
 
-                Text(
-                    text = stringResource(R.string.menu_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                 )
 
-                Divider()
 
                 // 🔹 Вступительное слово
                 NavigationDrawerItem(
@@ -154,7 +201,12 @@ fun PuzzleScreen(
                     }
                 )
 
-                Divider()
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
+
 
                 // 🔹 Фильтры
                 NavigationDrawerItem(
@@ -194,7 +246,12 @@ fun PuzzleScreen(
                     }
                 }
 
-                Divider()
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
+
 
                 // 🔹 Остальные пункты меню
                 NavigationDrawerItem(
@@ -334,6 +391,15 @@ fun PuzzleScreen(
             if (showResetConfirmDialog) ResetProgressDialog(viewModel) { showResetConfirmDialog = false }
             if (showLoginDialog) {
                 LoginDialog(authViewModel) { showLoginDialog = false }
+            }
+            // 🔹 диалог настроек профиля
+            if (showProfileSettings) {
+                val googleAvatarUrl = if (avatar.startsWith("res:")) null else avatar
+                ProfileSettingsDialog(
+                    viewModel = authViewModel, // передаём AuthViewModel
+                    onDismiss = { showProfileSettings = false },
+                    googleAvatarUrl = googleAvatarUrl
+                )
             }
         }
     }

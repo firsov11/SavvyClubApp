@@ -21,6 +21,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // Читаем CLIENT_ID из local.properties
         val props = gradleLocalProperties(rootDir, providers)
         val googleClientId = props.getProperty("GOOGLE_CLIENT_ID")
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$googleClientId\"")
@@ -35,6 +36,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -44,20 +46,24 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true // <-- Включаем генерацию BuildConfig
+        buildConfig = true // генерация BuildConfig
     }
 }
 
 dependencies {
-
+    // AndroidX core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    // Jetpack Compose (через BOM)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Тесты
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,15 +72,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-
-    implementation(libs.core.ktx)
-    implementation(libs.activity.compose)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.material3)
+    // Навигация, JSON, DataStore
     implementation(libs.navigation.compose)
     implementation(libs.gson)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
+
+    // Сетевые и архивные библиотеки
     implementation(libs.commons.compress)
     implementation(libs.okhttp)
     implementation(libs.ktor.client.core)
@@ -82,16 +86,20 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
+    // Firebase + Google Sign-In
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
-    implementation(libs.play.services.auth)
     implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore)
+
+    implementation(libs.play.services.auth)
     implementation(libs.play.services.identity)
 
+    // Credentials API
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.playservices.auth)
     implementation(libs.google.identity)
 
-    implementation(libs.credentials)
-    implementation(libs.credentials.play.services.auth)
+    implementation(libs.coil.compose)
 }
