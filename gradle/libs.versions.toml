@@ -7,7 +7,7 @@ junitVersion = "1.2.1"            # AndroidX Test JUnit
 espressoCore = "3.6.1"            # Espresso UI Test
 lifecycleRuntimeKtx = "2.9.2"     # Lifecycle + корутины
 activityCompose = "1.10.1"        # Activity Compose
-composeBom = "2024.09.00"         # Compose BOM
+composeBom = "2024.12.01"         # Compose BOM
 navigation = "2.7.7"              # Navigation Compose
 gson = "2.11.0"                   # Gson
 serialization = "1.6.3"           # kotlinx.serialization JSON
@@ -25,6 +25,8 @@ identity = "1.1.1"                # Google Identity library
 firebase-bom = "33.13.0"           # Firebase BOM
 
 version-coil = "2.5.0"
+
+accompanist = "0.30.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -69,6 +71,9 @@ androidx-credentials-playservices-auth = { module = "androidx.credentials:creden
 google-identity = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "identity" }
 
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "version-coil" }
+accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanist" }
+
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -102,4 +102,7 @@ dependencies {
     implementation(libs.google.identity)
 
     implementation(libs.coil.compose)
+
+    implementation(libs.accompanist.swiperefresh)
+
 }

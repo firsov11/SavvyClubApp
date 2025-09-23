@@ -15,7 +15,8 @@ import com.example.savvyclub.viewmodel.AuthViewModel
 @Composable
 fun LoginDialog(
     authViewModel: AuthViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onProfileSetup: () -> Unit // вызывается после успешной регистрации email/password
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -24,22 +25,19 @@ fun LoginDialog(
     val context = LocalContext.current
     val activity = context as Activity
 
-    // Инициализация One Tap клиента
     LaunchedEffect(Unit) {
         authViewModel.initGoogleSignInClient(activity)
     }
 
-    // Launcher для Google One Tap
     val googleLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         authViewModel.handleGoogleSignInResult(result.data) { success, message ->
             if (!success) errorMsg = message
-            else onDismiss()
+            else onDismiss() // Google: сразу закрываем диалог
         }
     }
 
-    // Функция для проверки формата email
     fun isValidEmail(input: String) =
         android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches()
 
@@ -75,7 +73,8 @@ fun LoginDialog(
                             !isValidEmail(email) -> errorMsg = "Введите корректный email"
                             password.length < 6 -> errorMsg = "Пароль должен быть не менее 6 символов"
                             else -> authViewModel.signInWithEmail(email, password) { success, msg ->
-                                if (success) onDismiss() else errorMsg = msg
+                                if (success) onDismiss()
+                                else errorMsg = msg
                             }
                         }
                     },
@@ -91,13 +90,14 @@ fun LoginDialog(
                             !isValidEmail(email) -> errorMsg = "Введите корректный email"
                             password.length < 6 -> errorMsg = "Пароль должен быть не менее 6 символов"
                             else -> authViewModel.signUpWithEmail(email, password) { success, msg ->
-                                if (success) onDismiss() else errorMsg = msg
+                                if (success) {
+                                    onProfileSetup() // открываем экран ввода имени
+                                } else errorMsg = msg
                             }
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Register") }
-
 
                 Spacer(Modifier.height(16.dp))
 
@@ -119,4 +119,5 @@ fun LoginDialog(
         }
     )
 }
+
 

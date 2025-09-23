@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromPath
@@ -62,7 +63,6 @@ import com.example.savvyclub.ui.screen.dialog.AboutDialog
 import com.example.savvyclub.ui.screen.dialog.ClearMemoryDialog
 import com.example.savvyclub.ui.screen.dialog.LoginDialog
 import com.example.savvyclub.ui.screen.dialog.OpeningRemarksDialog
-import com.example.savvyclub.ui.screen.dialog.ProfileSettingsDialog
 import com.example.savvyclub.ui.screen.dialog.ResetProgressDialog
 import com.example.savvyclub.viewmodel.AuthViewModel
 import com.example.savvyclub.viewmodel.SavvyClubViewModel
@@ -74,12 +74,11 @@ import java.util.Locale
 @Composable
 fun PuzzleScreen(
     viewModel: SavvyClubViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    navController: NavController
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    var showProfileSettings by remember { mutableStateOf(false) }
 
     // -------------------- Авторизация --------------------
     var showLoginDialog by remember { mutableStateOf(false) }
@@ -166,9 +165,15 @@ fun PuzzleScreen(
                         if (userEmail != null) {
                             Text("Hello, $userEmail")
                             Button(
-                                onClick = { showProfileSettings = true },
+                                onClick = {
+                                    scope.launch { drawerState.close() }
+                                    navController.navigate("profile_settings")
+                                },
                                 modifier = Modifier.padding(top = 4.dp)
-                            ) { Text("Настройки профиля") }
+                            ) {
+                                Text("Настройки профиля")
+                            }
+
 
                             Button(
                                 onClick = { authViewModel.signOut() },
@@ -207,6 +212,20 @@ fun PuzzleScreen(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                 )
 
+                NavigationDrawerItem(
+                    label = { Text("Товарищи") },
+                    selected = false,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate("comrades") // теперь работает
+                    }
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
 
                 // 🔹 Фильтры
                 NavigationDrawerItem(
@@ -390,15 +409,13 @@ fun PuzzleScreen(
             if (showClearMemoryConfirmDialog) ClearMemoryDialog(context) { showClearMemoryConfirmDialog = false }
             if (showResetConfirmDialog) ResetProgressDialog(viewModel) { showResetConfirmDialog = false }
             if (showLoginDialog) {
-                LoginDialog(authViewModel) { showLoginDialog = false }
-            }
-            // 🔹 диалог настроек профиля
-            if (showProfileSettings) {
-                val googleAvatarUrl = if (avatar.startsWith("res:")) null else avatar
-                ProfileSettingsDialog(
-                    viewModel = authViewModel, // передаём AuthViewModel
-                    onDismiss = { showProfileSettings = false },
-                    googleAvatarUrl = googleAvatarUrl
+                LoginDialog(
+                    authViewModel = authViewModel,
+                    onDismiss = { showLoginDialog = false },
+                    onProfileSetup = {
+                        showLoginDialog = false
+                        // сюда можно добавить переход на экран настроек профиля, если нужно
+                    }
                 )
             }
         }
