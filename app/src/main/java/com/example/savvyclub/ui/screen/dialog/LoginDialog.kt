@@ -107,11 +107,14 @@ fun LoginDialog(
                         authViewModel.startGoogleSignIn(
                             request,
                             onSuccess = { intentSenderRequest -> googleLauncher.launch(intentSenderRequest) },
-                            onFailure = { errorMsg = it }
+                            onFailure = { msg -> errorMsg = msg }
                         )
+
                     },
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Sign In with Google") }
+                ) {
+                    Text("Sign In with Google")
+                }
             }
         },
         confirmButton = {

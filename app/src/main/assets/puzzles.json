@@ -712,6 +712,20 @@
       "en": "1. Kc5-c6 Ka8-a7 2. c7-c8R Ka7-a6 3. Rc8-a8",
       "ru": "1. Kpc5-c6 Kpa8-a7 2. c7-c8Л Kpa7-a6 3. Лc8-a8"
     }
+  },
+  {
+    "id": 52,
+    "type": "chess",
+    "q": "puzzle52_q.png",
+    "a": "puzzle52_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Kardos, Tivadar",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Kardos, Tivadar"
+    },
+    "answer": {
+      "en": "1. Nb3-d2 Ke4-d3 2. Qc7-c4",
+      "ru": "1. Kb3-d2 Kpe4-d3 2. Фc7-c4"
+    }
   }
 
 ]
