@@ -37,10 +37,14 @@ fun ProfileSettingsScreen(
 
     val avatarList = listOf(
         R.drawable.bitcoin,
+        R.drawable.forty_four,
+        R.drawable.black_king,
         R.drawable.dice,
         R.drawable.frog,
+        R.drawable.black_queen,
         R.drawable.linux,
-        R.drawable.rubiks_cube
+        R.drawable.rubiks_cube,
+        R.drawable.graffiti
     )
 
     Scaffold(
@@ -87,7 +91,7 @@ fun ProfileSettingsScreen(
             }
 
             // Выбор аватаров
-            avatarList.chunked(3).forEach { row ->
+            avatarList.chunked(4).forEach { row ->
                 item {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),

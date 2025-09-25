@@ -726,6 +726,76 @@
       "en": "1. Nb3-d2 Ke4-d3 2. Qc7-c4",
       "ru": "1. Kb3-d2 Kpe4-d3 2. Фc7-c4"
     }
+  },
+  {
+    "id": 53,
+    "type": "chess",
+    "q": "puzzle53_q.png",
+    "a": "puzzle53_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Loyd, Samuel",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Loyd, Samuel"
+    },
+    "answer": {
+      "en": "1. Rе4-е1 Kf2xe1 2. Qg5-d2",
+      "ru": "1. Ле4-е1 Kpf2xe1 2. Фg5-d2"
+    }
+  },
+  {
+    "id": 54,
+    "type": "cryptorhyme",
+    "q": "puzzle54_q.png",
+    "a": "puzzle54_a.png",
+    "question": {
+      "en": "question",
+      "ru": "вопрос"
+    },
+    "answer": {
+      "en": "answer",
+      "ru": "ответ"
+    }
+  },
+  {
+    "id": 55,
+    "type": "chess",
+    "q": "puzzle55_q.png",
+    "a": "puzzle55_a.png",
+    "question": {
+      "en": "White to start and checkmate in 4 moves. Author Speckmann, Werner",
+      "ru": "Белые начинают и ставят мат в 4 хода. Автор Speckmann, Werner"
+    },
+    "answer": {
+      "en": "1. Kb5-c6 Kb8-a7 2. Nb4-a6 Ka7xa6 3. b7-b8Q Ka6-a5 Qb8-b5",
+      "ru": "1. Kpb5-c6 Kpb8-a7 2. Kb4-a6 Kpa7xa6 3. b7-b8Ф Kpa6-a5 Фb8-b5"
+    }
+  },
+  {
+    "id": 56,
+    "type": "chess",
+    "q": "puzzle56_q.png",
+    "a": "puzzle56_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves. Author Chepizhny, Viktor Ivanovich",
+      "ru": "Белые начинают и ставят мат в 2 хода. Автор Чепижный, Виктор Иванович"
+    },
+    "answer": {
+      "en": "1. Bb1-a2 b3xa2 2. Nb4-c2",
+      "ru": "1. Cb1-a2 b3xa2 2. Kb4-c2"
+    }
+  },
+  {
+    "id": 57,
+    "type": "chess",
+    "q": "puzzle57_q.png",
+    "a": "puzzle57_a.png",
+    "question": {
+      "en": "White to start and checkmate in 2 moves.",
+      "ru": "Белые начинают и ставят мат в 2 хода."
+    },
+    "answer": {
+      "en": "1. Ra2-a6 b7xa6 2. b6-b7",
+      "ru": "1. Лa2-a6 b7xa6 2. b6-b7"
+    }
   }
 
 ]
