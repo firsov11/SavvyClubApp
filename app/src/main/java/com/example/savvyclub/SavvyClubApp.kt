@@ -40,34 +40,56 @@ fun SavvyClubApp(application: Application) {
             }
 
             // ---------------- Overlay экраны ----------------
-            AnimatedContent(
-                targetState = overlayScreen.value,
-                transitionSpec = {
-                    fadeIn(animationSpec = tween(300)) with fadeOut(animationSpec = tween(300))
-                }
-            ) { screen ->
-                when (screen) {
-                    "comrades" -> {
-                        val comradesViewModel: ComradesViewModel = viewModel()
-                        ComradesScreen(
-                            viewModel = comradesViewModel,
-                            onBack = { overlayScreen.value = null }
-                        )
+            if (overlayScreen.value != null) {
+                // Сначала перекрываем пазлы статичной заглушкой
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(MaterialTheme.colorScheme.background)
+                )
+
+                // А затем уже анимируем экран
+                AnimatedContent(
+                    targetState = overlayScreen.value,
+                    transitionSpec = {
+                        // сдвиг справа налево + без мерцания
+                        (slideInHorizontally(
+                            initialOffsetX = { fullWidth -> fullWidth },
+                            animationSpec = tween(300)
+                        ) + fadeIn(animationSpec = tween(150))) with
+                                (slideOutHorizontally(
+                                    targetOffsetX = { fullWidth -> fullWidth },
+                                    animationSpec = tween(300)
+                                ) + fadeOut(animationSpec = tween(150)))
                     }
-                    "profile_settings" -> {
-                        ProfileSettingsScreen(
-                            authViewModel = authViewModel,
-                            onBack = { overlayScreen.value = null }
-                        )
-                    }
-                    "opening_remarks" -> {
-                        OpeningRemarksScreen(
-                            onBack = { overlayScreen.value = null }
-                        )
+                ) { screen ->
+                    when (screen) {
+                        "comrades" -> {
+                            val comradesViewModel: ComradesViewModel = viewModel()
+                            ComradesScreen(
+                                viewModel = comradesViewModel,
+                                onBack = { overlayScreen.value = null }
+                            )
+                        }
+                        "profile_settings" -> {
+                            ProfileSettingsScreen(
+                                authViewModel = authViewModel,
+                                onBack = { overlayScreen.value = null }
+                            )
+                        }
+                        "opening_remarks" -> {
+                            OpeningRemarksScreen(
+                                onBack = { overlayScreen.value = null }
+                            )
+                        }
                     }
                 }
             }
+
+
         }
     }
 }
+
+
 
