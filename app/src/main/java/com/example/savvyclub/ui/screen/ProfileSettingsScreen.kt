@@ -29,11 +29,16 @@ fun ProfileSettingsScreen(
     onBack: () -> Unit
 ) {
     val userState by authViewModel.userState.collectAsState()
-    val selectedAvatar = userState?.avatarUrl ?: "res:${R.drawable.default_avatar}"
-    val userName = userState?.name ?: ""
-    var name by remember { mutableStateOf(TextFieldValue(userName)) }
 
-    LaunchedEffect(userName) { name = TextFieldValue(userName) }
+    // Локальные состояния для редактирования
+    var localName by remember { mutableStateOf(TextFieldValue("")) }
+    var localAvatar by remember { mutableStateOf("res:${R.drawable.default_avatar}") }
+
+    // Синхронизируем при изменении userState
+    LaunchedEffect(userState) {
+        localName = TextFieldValue(userState?.name ?: "")
+        localAvatar = userState?.avatarUrl ?: "res:${R.drawable.default_avatar}"
+    }
 
     val avatarList = listOf(
         R.drawable.bitcoin,
@@ -54,7 +59,7 @@ fun ProfileSettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            imageVector = Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.back)
                         )
                     }
@@ -70,19 +75,24 @@ fun ProfileSettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Текущий аватар
             item {
-                // Аватар
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                    if (selectedAvatar.startsWith("res:")) {
-                        val resId = selectedAvatar.removePrefix("res:").toIntOrNull() ?: R.drawable.default_avatar
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (localAvatar.startsWith("res:")) {
+                        val resId = localAvatar.removePrefix("res:").toIntOrNull() ?: R.drawable.default_avatar
                         Image(
                             painter = painterResource(id = resId),
                             contentDescription = "Avatar",
-                            modifier = Modifier.size(96.dp).clip(CircleShape)
+                            modifier = Modifier
+                                .size(96.dp)
+                                .clip(CircleShape)
                         )
-                    } else if (selectedAvatar.isNotEmpty()) {
+                    } else if (localAvatar.isNotEmpty()) {
                         AsyncImage(
-                            model = selectedAvatar,
+                            model = localAvatar,
                             contentDescription = "Avatar",
                             modifier = Modifier.size(96.dp).clip(CircleShape)
                         )
@@ -90,7 +100,7 @@ fun ProfileSettingsScreen(
                 }
             }
 
-            // Выбор аватаров
+            // Сетка аватаров
             avatarList.chunked(4).forEach { row ->
                 item {
                     Row(
@@ -98,7 +108,7 @@ fun ProfileSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         row.forEach { res ->
-                            val isSelected = selectedAvatar == "res:$res"
+                            val isSelected = localAvatar == "res:$res"
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -110,15 +120,16 @@ fun ProfileSettingsScreen(
                                         else Color.Transparent
                                     )
                                     .clickable {
-                                        authViewModel.saveLocally(
-                                            userState!!.copy(avatarUrl = "res:$res")
-                                        )
+                                        // только локально меняем выбранный аватар
+                                        localAvatar = "res:$res"
                                     }
                             ) {
                                 Image(
                                     painter = painterResource(id = res),
                                     contentDescription = "Avatar",
-                                    modifier = Modifier.size(64.dp).clip(CircleShape)
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .clip(CircleShape)
                                 )
                             }
                         }
@@ -129,8 +140,8 @@ fun ProfileSettingsScreen(
             // Имя пользователя
             item {
                 OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
+                    value = localName,
+                    onValueChange = { localName = it },
                     label = { Text("Имя") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -141,10 +152,10 @@ fun ProfileSettingsScreen(
                 Button(
                     onClick = {
                         userState?.let {
-                            authViewModel.saveLocally(
+                            authViewModel.saveUserData(
                                 it.copy(
-                                    name = name.text,
-                                    avatarUrl = selectedAvatar
+                                    name = localName.text,
+                                    avatarUrl = localAvatar
                                 )
                             )
                         }
@@ -158,3 +169,4 @@ fun ProfileSettingsScreen(
         }
     }
 }
+

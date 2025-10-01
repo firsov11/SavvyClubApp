@@ -29,13 +29,25 @@ class UserPreferences(private val context: Context) {
         }
     }
 
-    val userFlow: Flow<Comrade> = context.dataStore.data.map { prefs ->
-        Comrade(
-            uid = prefs[UID_KEY]?.takeIf { it.isNotEmpty() },
-            name = prefs[NAME_KEY] ?: "",
-            email = prefs[EMAIL_KEY] ?: "",
-            avatarUrl = prefs[AVATAR_KEY] ?: "",
-            isOnline = false // локально статус можно сбрасывать
-        )
+    /** 🔹 Очистка при выходе */
+    suspend fun clearUser() {
+        context.dataStore.edit { prefs ->
+            prefs.clear()
+        }
+    }
+
+    val userFlow: Flow<Comrade?> = context.dataStore.data.map { prefs ->
+        val uid = prefs[UID_KEY]
+        if (uid.isNullOrEmpty()) {
+            null
+        } else {
+            Comrade(
+                uid = uid,
+                name = prefs[NAME_KEY] ?: "",
+                email = prefs[EMAIL_KEY] ?: "",
+                avatarUrl = prefs[AVATAR_KEY] ?: "",
+                isOnline = false // локально off
+            )
+        }
     }
 }

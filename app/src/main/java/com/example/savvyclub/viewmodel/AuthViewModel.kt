@@ -32,27 +32,24 @@ class AuthViewModel(private val userPreferences: UserPreferences) : ViewModel() 
         // Загружаем локальные данные
         loadLocalUserData()
 
-        // Если есть Firebase-пользователь, подтягиваем данные из Firebase
-        auth.currentUser?.uid?.let { loadUserDataFromFirebase(it) }
+        // Подтягиваем из Firebase только если локально ничего нет
+        if (_userState.value == null) {
+            auth.currentUser?.uid?.let { loadUserDataFromFirebase(it) }
+        }
     }
 
-    /** Сохраняем пользователя в Firebase и локально */
-    private fun saveUserData(comrade: Comrade) {
+    /** Сохранение пользователя локально + в Firebase */
+    fun saveUserData(comrade: Comrade) {
         comrade.uid?.let { uid ->
-            val userMap = mapOf(
-                "name" to comrade.name,
-                "email" to comrade.email,
-                "avatar" to comrade.avatarUrl,
-                "online" to comrade.isOnline
-            )
-            FirebaseDatabase.getInstance().getReference("users/$uid")
-                .updateChildren(userMap)
+            FirebaseDatabase.getInstance()
+                .getReference("users/$uid")
+                .updateChildren(comrade.toMap())
         }
         saveLocally(comrade)
     }
 
-    /** Сохраняем локально */
-    fun saveLocally(comrade: Comrade) {
+    /** Только локально */
+    private fun saveLocally(comrade: Comrade) {
         viewModelScope.launch {
             userPreferences.saveUser(comrade)
             _userState.value = comrade
@@ -70,18 +67,18 @@ class AuthViewModel(private val userPreferences: UserPreferences) : ViewModel() 
 
     /** Загружаем данные пользователя из Firebase */
     fun loadUserDataFromFirebase(uid: String) {
-        val dbRef = FirebaseDatabase.getInstance().getReference("users/$uid")
-        dbRef.get().addOnSuccessListener { snapshot ->
-            val comrade = Comrade(
-                uid = uid,
-                name = snapshot.child("name").getValue(String::class.java) ?: "",
-                email = snapshot.child("email").getValue(String::class.java) ?: "",
-                avatarUrl = snapshot.child("avatar").getValue(String::class.java) ?: defaultAvatar,
-                isOnline = snapshot.child("online").getValue(Boolean::class.java) ?: false
-            )
-            saveUserData(comrade)
-            setupPresence(uid)
-        }
+        FirebaseDatabase.getInstance().getReference("users/$uid")
+            .get().addOnSuccessListener { snapshot ->
+                val comrade = Comrade(
+                    uid = uid,
+                    name = snapshot.child("name").getValue(String::class.java) ?: "",
+                    email = snapshot.child("email").getValue(String::class.java) ?: "",
+                    avatarUrl = snapshot.child("avatar").getValue(String::class.java) ?: defaultAvatar,
+                    isOnline = snapshot.child("online").getValue(Boolean::class.java) ?: false
+                )
+                saveLocally(comrade)
+                setupPresence(uid)
+            }
     }
 
     /** Онлайн/оффлайн */
@@ -99,12 +96,39 @@ class AuthViewModel(private val userPreferences: UserPreferences) : ViewModel() 
         userStatusRef.setValue(true)
     }
 
-    /** Выход из аккаунта */
-    fun signOut() {
+    /** ✅ Правильный выход из аккаунта */
+    fun signOut(activity: Activity, onComplete: (() -> Unit)? = null) {
+        // Сбрасываем статус online
         _userState.value?.uid?.let { setOnlineStatus(false) }
+
+        // Выход из Firebase
         auth.signOut()
-        if (::oneTapClient.isInitialized) oneTapClient.signOut()
-        _userState.value = null
+
+        // Выход из OneTap Google
+        if (::oneTapClient.isInitialized) {
+            oneTapClient.signOut().addOnCompleteListener {
+                clearLocalUser()
+                onComplete?.invoke()
+            }
+        } else {
+            clearLocalUser()
+            onComplete?.invoke()
+        }
+    }
+
+    /** Очистка локального пользователя */
+    private fun clearLocalUser() {
+        viewModelScope.launch {
+            val cleared = Comrade(
+                uid = null,
+                name = "",
+                email = "",
+                avatarUrl = defaultAvatar,
+                isOnline = false
+            )
+            userPreferences.clearUser()
+            _userState.value = cleared
+        }
     }
 
     /** Инициализация Google Sign-In */
@@ -211,5 +235,4 @@ class AuthViewModel(private val userPreferences: UserPreferences) : ViewModel() 
                 onFailure(e.localizedMessage ?: "Unknown error")
             }
     }
-
 }

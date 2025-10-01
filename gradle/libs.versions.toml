@@ -28,6 +28,8 @@ version-coil = "2.5.0"
 
 accompanist = "0.30.1"
 
+accompanist-navigation-animation = "0.36.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -72,6 +74,7 @@ google-identity = { module = "com.google.android.libraries.identity.googleid:goo
 
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "version-coil" }
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanist" }
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanist-navigation-animation" }
 
 
 

@@ -1,6 +1,8 @@
 package com.example.savvyclub.ui.screen
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -40,6 +42,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +58,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.savvyclub.R
 import com.example.savvyclub.ui.component.PuzzleImageFromPath
@@ -68,17 +70,25 @@ import com.example.savvyclub.viewmodel.SavvyClubViewModel
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun PuzzleScreen(
     viewModel: SavvyClubViewModel,
     authViewModel: AuthViewModel,
-    navController: NavController
+    overlayScreen: MutableState<String?>
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val activity = context as? Activity
+
 
     var showLoginDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    var showResetConfirmDialog by remember { mutableStateOf(false) }
+    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) }
+    var showFilterSection by remember { mutableStateOf(false) }
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     val userState by authViewModel.userState.collectAsState()
     val userEmail = userState?.email
@@ -92,12 +102,6 @@ fun PuzzleScreen(
     val selectedTypes by viewModel.selectedTypes.collectAsState()
     val allPuzzles by viewModel.allPuzzles.collectAsState(initial = emptyList())
     val scrollState = rememberScrollState()
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-
-    var showAboutDialog by remember { mutableStateOf(false) }
-    var showResetConfirmDialog by remember { mutableStateOf(false) }
-    var showClearMemoryConfirmDialog by remember { mutableStateOf(false) }
-    var showFilterSection by remember { mutableStateOf(false) }
 
     val allTypes = remember(allPuzzles) { allPuzzles.map { it.puzzle.type }.distinct() }
     val typeLocalizationMap = mapOf(
@@ -112,25 +116,10 @@ fun PuzzleScreen(
         if (puzzles.isNotEmpty() && currentIndex >= puzzles.size) viewModel.resetIndex()
     }
 
-    // слушаем флаг openDrawer
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(savedStateHandle) {
-        savedStateHandle
-            ?.getStateFlow("openDrawer", false)
-            ?.collect { open ->
-                if (open) {
-                    scope.launch { drawerState.open() }
-                    savedStateHandle.set("openDrawer", false)
-                }
-            }
-    }
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor = MaterialTheme.colorScheme.background
-            ) {
+            ModalDrawerSheet(drawerContainerColor = MaterialTheme.colorScheme.background) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -140,10 +129,7 @@ fun PuzzleScreen(
                     Spacer(Modifier.height(12.dp))
 
                     // 🔹 Профиль
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(16.dp)
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
                         if (avatar.startsWith("res:")) {
                             val resId = avatar.removePrefix("res:").toIntOrNull() ?: R.drawable.default_avatar
                             Image(
@@ -161,51 +147,51 @@ fun PuzzleScreen(
                         }
 
                         Spacer(Modifier.width(12.dp))
-
                         Column {
                             Text("Hello, ${if (userName.isBlank()) "Guest" else userName}")
                             Button(
                                 onClick = {
-                                    if (userEmail != null) authViewModel.signOut()
-                                    else showLoginDialog = true
+                                    if (userEmail != null && activity != null) {
+                                        authViewModel.signOut(activity)
+                                    } else {
+                                        showLoginDialog = true
+                                    }
                                 },
                                 modifier = Modifier.padding(top = 4.dp)
                             ) {
                                 Text(if (userEmail != null) "Sign out" else "Sign in / Register")
                             }
+
                         }
                     }
 
-                    // 🔹 Навигация (правки!)
+                    // 🔹 Только для вошедших пользователей
                     if (userEmail != null) {
                         NavigationDrawerItem(
                             label = { Text("Настройки профиля") },
                             selected = false,
                             onClick = {
-                                // ставим флаг для PuzzleScreen, чтобы при возврате Drawer открылся
-                                navController.currentBackStackEntry?.savedStateHandle?.set("openDrawer", true)
-                                navController.navigate("profile_settings")
+                                overlayScreen.value = "profile_settings"
+                                scope.launch { drawerState.close() }
+                            }
+                        )
+
+                        NavigationDrawerItem(
+                            label = { Text("Товарищи") },
+                            selected = false,
+                            onClick = {
+                                overlayScreen.value = "comrades"
                                 scope.launch { drawerState.close() }
                             }
                         )
                     }
 
+                    // 🔹 Доступно всем
                     NavigationDrawerItem(
                         label = { Text("Вступительное слово") },
                         selected = false,
                         onClick = {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("openDrawer", true)
-                            navController.navigate("opening_remarks")
-                            scope.launch { drawerState.close() }
-                        }
-                    )
-
-                    NavigationDrawerItem(
-                        label = { Text("Товарищи") },
-                        selected = false,
-                        onClick = {
-                            navController.currentBackStackEntry?.savedStateHandle?.set("openDrawer", true)
-                            navController.navigate("comrades")
+                            overlayScreen.value = "opening_remarks"
                             scope.launch { drawerState.close() }
                         }
                     )
@@ -213,11 +199,9 @@ fun PuzzleScreen(
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                     // 🔹 Фильтры
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.filters)) },
+                    NavigationDrawerItem(label = { Text(stringResource(R.string.filters)) },
                         selected = showFilterSection,
-                        onClick = { showFilterSection = !showFilterSection }
-                    )
+                        onClick = { showFilterSection = !showFilterSection })
 
                     AnimatedVisibility(
                         visible = showFilterSection,
@@ -229,14 +213,9 @@ fun PuzzleScreen(
                                 val checked = type in selectedTypes
                                 val localizedType = typeLocalizationMap[type]?.let { stringResource(it) }
                                     ?: type.replaceFirstChar { it.uppercase() }
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                                ) {
-                                    Checkbox(
-                                        checked = checked,
-                                        onCheckedChange = { viewModel.toggleFilter(type) }
-                                    )
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                    Checkbox(checked = checked, onCheckedChange = { viewModel.toggleFilter(type) })
                                     Text(localizedType, modifier = Modifier.padding(start = 8.dp))
                                 }
                             }
@@ -245,39 +224,29 @@ fun PuzzleScreen(
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.about)) },
-                        selected = false,
+                    NavigationDrawerItem(label = { Text(stringResource(R.string.about)) }, selected = false,
                         onClick = {
                             showAboutDialog = true
                             scope.launch { drawerState.close() }
-                        }
-                    )
+                        })
 
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.reset_progress)) },
-                        selected = false,
+                    NavigationDrawerItem(label = { Text(stringResource(R.string.reset_progress)) }, selected = false,
                         onClick = {
                             showResetConfirmDialog = true
                             scope.launch { drawerState.close() }
-                        }
-                    )
+                        })
 
-                    NavigationDrawerItem(
-                        label = { Text(stringResource(R.string.clear_memory)) },
-                        selected = false,
+                    NavigationDrawerItem(label = { Text(stringResource(R.string.clear_memory)) }, selected = false,
                         onClick = {
                             showClearMemoryConfirmDialog = true
                             scope.launch { drawerState.close() }
-                        }
-                    )
+                        })
                 }
             }
         }
     ) {
-        // -------------------- Контент экрана --------------------
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
+        // ---------------- Контент PuzzleScreen ----------------
+        Scaffold(containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.app_name)) },
@@ -291,12 +260,11 @@ fun PuzzleScreen(
         ) { padding ->
             val screenWidthPx = with(context.resources.displayMetrics) { widthPixels.toFloat() }
 
-            // ✅ Сначала кладём цвет темы, потом картинку, потом контент
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .background(MaterialTheme.colorScheme.background) // ← первый слой
+                    .background(MaterialTheme.colorScheme.background)
                     .pointerInput(Unit) {
                         detectTapGestures { offset ->
                             val x = offset.x
@@ -308,7 +276,6 @@ fun PuzzleScreen(
                         }
                     }
             ) {
-                // 2-й слой — полупрозрачная картинка
                 Image(
                     painter = painterResource(R.drawable.bg_puzzles),
                     contentDescription = null,
@@ -318,7 +285,6 @@ fun PuzzleScreen(
                     colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
                 )
 
-                // 3-й слой — основной контент
                 Column(modifier = Modifier.fillMaxSize()) {
                     currentPuzzleItem?.let { puzzleItem ->
                         val puzzle = puzzleItem.puzzle
@@ -379,6 +345,3 @@ fun PuzzleScreen(
         }
     }
 }
-
-
-
