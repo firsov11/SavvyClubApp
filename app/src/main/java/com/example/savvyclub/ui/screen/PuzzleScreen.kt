@@ -184,6 +184,16 @@ fun PuzzleScreen(
                                 scope.launch { drawerState.close() }
                             }
                         )
+
+                        // 🔹 Новый пункт для Store
+                        NavigationDrawerItem(
+                            label = { Text("Магазин") },
+                            selected = false,
+                            onClick = {
+                                overlayScreen.value = "store"
+                                scope.launch { drawerState.close() }
+                            }
+                        )
                     }
 
                     // 🔹 Доступно всем

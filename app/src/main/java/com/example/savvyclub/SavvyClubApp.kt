@@ -15,6 +15,7 @@ import com.example.savvyclub.ui.screen.*
 import com.example.savvyclub.ui.theme.SavvyClubTheme
 import com.example.savvyclub.viewmodel.*
 
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SavvyClubApp(application: Application) {
@@ -82,11 +83,14 @@ fun SavvyClubApp(application: Application) {
                                 onBack = { overlayScreen.value = null }
                             )
                         }
+                        "store" -> {
+                            StoreScreen(
+                                onBack = { overlayScreen.value = null }
+                            )
+                        }
                     }
                 }
             }
-
-
         }
     }
 }
